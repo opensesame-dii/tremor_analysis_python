@@ -613,25 +613,25 @@ def update_status(sg_window, event, values, shared_data):
         sensor_idx = str(shared_data.sensor_lst.index(shared_data.sensor))
         
         sg_window.FindElement('-MULTILINE-').Update(
-            str(eval("shared_data.data1_" + sensor_idx + "_peak_amp")) + "\r\n" + \
-            str(eval("shared_data.data1_" + sensor_idx + "_peak_freq")) + "\r\n" + \
-            str(eval("shared_data.data1_" + sensor_idx + "_peak_time")) + "\r\n" + \
-            str(eval("shared_data.data1_" + sensor_idx + "_wh_peak_amp")) + "\r\n" + \
-            str(eval("shared_data.data1_" + sensor_idx + "_wh_peak_freq")) + "\r\n" + \
-            str(eval("shared_data.data1_" + sensor_idx + "_fwhm")) + "\r\n" + \
-            str(eval("shared_data.data1_" + sensor_idx + "_hwp")) + "\r\n" + \
-            str(eval("shared_data.data1_" + sensor_idx + "_tsi")) + "\r\n" + \
-            str(eval("shared_data.data2_" + sensor_idx + "_peak_amp")) + "\r\n" + \
-            str(eval("shared_data.data2_" + sensor_idx + "_peak_freq")) + "\r\n" + \
-            str(eval("shared_data.data2_" + sensor_idx + "_peak_time")) + "\r\n" + \
-            str(eval("shared_data.data2_" + sensor_idx + "_wh_peak_amp")) + "\r\n" + \
-            str(eval("shared_data.data2_" + sensor_idx + "_wh_peak_freq")) + "\r\n" + \
-            str(eval("shared_data.data2_" + sensor_idx + "_fwhm")) + "\r\n" + \
-            str(eval("shared_data.data2_" + sensor_idx + "_hwp")) + "\r\n" + \
-            str(eval("shared_data.data2_" + sensor_idx + "_tsi")) + "\r\n" + \
-            str(eval("shared_data.coh" + sensor_idx)) + "\r\n" + \
-            str(eval("shared_data.coh" + sensor_idx + "_0")) + "\r\n" + \
-            str(eval("shared_data.coh" + sensor_idx + "_1")) + "\r\n" + \
+            str(eval("shared_data.data1_" + sensor_idx + "_peak_amp")) + "\n" + \
+            str(eval("shared_data.data1_" + sensor_idx + "_peak_freq")) + "\n" + \
+            str(eval("shared_data.data1_" + sensor_idx + "_peak_time")) + "\n" + \
+            str(eval("shared_data.data1_" + sensor_idx + "_wh_peak_amp")) + "\n" + \
+            str(eval("shared_data.data1_" + sensor_idx + "_wh_peak_freq")) + "\n" + \
+            str(eval("shared_data.data1_" + sensor_idx + "_fwhm")) + "\n" + \
+            str(eval("shared_data.data1_" + sensor_idx + "_hwp")) + "\n" + \
+            str(eval("shared_data.data1_" + sensor_idx + "_tsi")) + "\n" + \
+            str(eval("shared_data.data2_" + sensor_idx + "_peak_amp")) + "\n" + \
+            str(eval("shared_data.data2_" + sensor_idx + "_peak_freq")) + "\n" + \
+            str(eval("shared_data.data2_" + sensor_idx + "_peak_time")) + "\n" + \
+            str(eval("shared_data.data2_" + sensor_idx + "_wh_peak_amp")) + "\n" + \
+            str(eval("shared_data.data2_" + sensor_idx + "_wh_peak_freq")) + "\n" + \
+            str(eval("shared_data.data2_" + sensor_idx + "_fwhm")) + "\n" + \
+            str(eval("shared_data.data2_" + sensor_idx + "_hwp")) + "\n" + \
+            str(eval("shared_data.data2_" + sensor_idx + "_tsi")) + "\n" + \
+            str(eval("shared_data.coh" + sensor_idx)) + "\n" + \
+            str(eval("shared_data.coh" + sensor_idx + "_0")) + "\n" + \
+            str(eval("shared_data.coh" + sensor_idx + "_1")) + "\n" + \
             str(eval("shared_data.coh" + sensor_idx + "_2"))
         )
         sg_window.FindElement('-MULTILINE-').Widget.clipboard_clear()
