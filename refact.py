@@ -95,29 +95,29 @@ class DataStructure():
 
         self.results = {
             0: { # file 1
-                "sa_peak_amplitude" : [[None] * 4] * SENSORS , # on "spectral amplitude" mode
-                "sa_peak_frequency" : [[None] * 4] * SENSORS ,
-                "sa_fwhm"           : [[None] * 4] * SENSORS ,
-                "sa_hwp"            : [[None] * 4] * SENSORS ,
-                "sa_tsi"            : [[None] * 4] * SENSORS ,
+                "sa_peak_amplitude" : copy.deepcopy(empty) , # on "spectral amplitude" mode
+                "sa_peak_frequency" : copy.deepcopy(empty) ,
+                "sa_fwhm"           : copy.deepcopy(empty) ,
+                "sa_hwp"            : copy.deepcopy(empty) ,
+                "sa_tsi"            : copy.deepcopy(empty) ,
 
-                "sp_peak_amplitude" : [[None] * 4] * SENSORS , # on "Spectrogram" mode
-                "sp_peak_frequency" : [[None] * 4] * SENSORS ,
-                "sp_peak_time"      : [[None] * 4] * SENSORS
+                "sp_peak_amplitude" : copy.deepcopy(empty) , # on "Spectrogram" mode
+                "sp_peak_frequency" : copy.deepcopy(empty) ,
+                "sp_peak_time"      : copy.deepcopy(empty)
             },
             1: { # file 2
-                "sa_peak_amplitude" : [[None] * 4] * SENSORS , # on "spectral amplitude" mode
-                "sa_peak_frequency" : [[None] * 4] * SENSORS ,
-                "sa_fwhm"           : [[None] * 4] * SENSORS ,
-                "sa_hwp"            : [[None] * 4] * SENSORS ,
-                "sa_tsi"            : [[None] * 4] * SENSORS ,
+                "sa_peak_amplitude" : copy.deepcopy(empty) , # on "spectral amplitude" mode
+                "sa_peak_frequency" : copy.deepcopy(empty) ,
+                "sa_fwhm"           : copy.deepcopy(empty) ,
+                "sa_hwp"            : copy.deepcopy(empty) ,
+                "sa_tsi"            : copy.deepcopy(empty) ,
 
-                "sp_peak_amplitude" : [[None] * 4] * SENSORS , # on "Spectrogram" mode
-                "sp_peak_frequency" : [[None] * 4] * SENSORS ,
-                "sp_peak_time"      : [[None] * 4] * SENSORS
+                "sp_peak_amplitude" : copy.deepcopy(empty) , # on "Spectrogram" mode
+                "sp_peak_frequency" : copy.deepcopy(empty) ,
+                "sp_peak_time"      : copy.deepcopy(empty)
             },
             -1: { # relational values between file1 and file 2
-                "coherence"         : [[None] * 4] * SENSORS ,
+                "coherence"         : copy.deepcopy(empty) ,
             }
         }
 
