@@ -5,6 +5,7 @@ from os import makedirs, path
 from io import BytesIO
 from shutil import rmtree
 import matplotlib.pyplot as plt
+import copy
 
 from PIL import Image, ImageTk
 import numpy as np
@@ -90,6 +91,8 @@ class DataStructure():
         self.current_mode = 0
         self.sensors = ["sensor"+str(i + 1) for i in range(SENSORS)] # "sensor1", "sensor2", ...
         
+        empty = [[None, None, None, None], [None, None, None, None], [None, None, None, None]]
+
         self.results = {
             0: { # file 1
                 "sa_peak_amplitude" : [[None] * 4] * SENSORS , # on "spectral amplitude" mode
