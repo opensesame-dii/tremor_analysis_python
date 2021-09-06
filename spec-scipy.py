@@ -165,16 +165,26 @@ def spectrogram_analize(data_i, fs, nperseg, filename, sensor, start=0, end=-1):
     specs = []
     for i in range(3):
         start = time.time()
-        spec, f, t = np.abs(stft(signal.detrend(data[i]), fs, int(nperseg)))
+        # spec, f, t = np.abs(stft(signal.detrend(data[i]), fs, int(nperseg)))
+        # spec, f, t = np.abs(stft(signal.detrend(data[i]), fs, int(nperseg)))
+        L = np.min((len(data[i]), nperseg))
+        nTimesSpectrogram = 500; 
+        noverlap = np.ceil(L - (len(data[i]) - L) / (nTimesSpectrogram - 1))
+        noverlap = int(np.max((1,noverlap)))
+        f, t, spec = signal.spectrogram(signal.detrend(data[i]), fs, nfft=1024,noverlap=noverlap, nperseg=nperseg)
         specs.append(spec)
         elapsed_time = time.time() - start
-        print ("elapsed_time:\n{0}".format(elapsed_time))
+        print ("elapsed_time:{0}\n".format(elapsed_time))
+        # print(spec.shape)
     # convert to 3-dimensional ndarray
     specs = np.array(specs) #specs.shape: (3, 640, 527)
     vmin = np.min(specs)
     vmax = np.max(specs)
     # add norm
     specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
+    print(f.shape)
+    print(t.shape)
+    print(specs.shape)
 
     for ax in range(3):
         plt.figure(dpi=dpi, figsize=narrow_figsize)
@@ -186,7 +196,7 @@ def spectrogram_analize(data_i, fs, nperseg, filename, sensor, start=0, end=-1):
         #cbar.set_clim(0, 1.1) #plt3.2まで
         #cbar.mappable.set_clim(0, 1.1) #plt3.3以降
         #plt.show()
-        #### plt.savefig(data_dir + "/" + remove_ext(filename) + str(ax) + sensor + "sp.png")
+        plt.savefig(data_dir + "/" + remove_ext(filename) + str(ax) + sensor + "sp.png")
         plt.close()
         #print("saved: ", data_dir + "/" + remove_ext(filename) + str(ax) + sensor + "sp.png")
 
@@ -199,13 +209,17 @@ def spectrogram_analize(data_i, fs, nperseg, filename, sensor, start=0, end=-1):
     #cbar.set_clim(0, 1.1) #plt3.2まで
     #cbar.mappable.set_clim(0, 1.1) #plt3.3以降
     #plt.show()
-    #### plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "sp.png")
+    plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "sp.png")
     plt.close()
 
+    print(f)
+    print(len(f))
+
     recording = len(data[0]) / fs
-    f_offset = int(specs.shape[2] * 2 / 20)
+    f_offset = int(specs.shape[1] * 20 / 100)
+    print(f"foffset: {f_offset}")
     # print("s t {} {}".format(t[0], t[-1]))
-    peak_amp = np.max(specs[3, f_offset:, :])
+    peak_amp = np.max(specs[3, :f_offset, :])
     peak_idx = np.where(specs[3] == peak_amp)
     peak_freq = f[peak_idx[0][0]]
     peak_time = t[peak_idx[1][0]]
@@ -276,7 +290,7 @@ def power_density_analize(data_i, fs, nperseg, filename, sensor, start=0, end=-1
         plt.ylim(0, vmax * 1.2)
         plt.plot(f, specs[i])
         #plt.show()
-        #### plt.savefig(data_dir + "/" + remove_ext(filename) + str(i) + sensor + "am.png")
+        plt.savefig(data_dir + "/" + remove_ext(filename) + str(i) + sensor + "am.png")
         plt.close()
     plt.figure(dpi=dpi, figsize=wide_figsize)
     plt.ylim(0, np.max(specs[3]) * 1.05)
@@ -287,7 +301,7 @@ def power_density_analize(data_i, fs, nperseg, filename, sensor, start=0, end=-1
     print(specs[3, int(l)])
     plt.fill_between(f[l:u], specs[3, l:u], color="r", alpha=0.5)
     #plt.show()
-    #### plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "am.png")
+    plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "am.png")
     plt.close()
 
     recording = len(data[0]) / fs
@@ -498,7 +512,6 @@ def detect_data_warning(data):
     return any([max_idx[i] + 1 == max_idx[i + 1] for i in range(len(max_idx) - 1)]) or any([min_idx[i] + 1 == min_idx[i + 1] for i in range(len(min_idx) - 1)])
 
 def update_status(sg_window, event, values, shared_data):
-    start = time.time()
     sg_window["progress"].update("00%")
     print(event)
     file1_name = values["input1"]
@@ -530,12 +543,11 @@ def update_status(sg_window, event, values, shared_data):
             need_update_calculation = True
             need_update_outputs = True
             data1_updated = True
-
+            """
             for i in range(9):
                 if (detect_data_warning(shared_data.data1[:,i])):
-                    # sg.Popup("Warning: data at column {} may go off the scale".format(i+1))
-                    pass
-                
+                    sg.Popup("Warning: data at column {} may go off the scale".format(i+1))
+            """
         except FileNotFoundError:
             sg.Popup("Error: file not found")
             
@@ -673,9 +685,9 @@ def update_status(sg_window, event, values, shared_data):
             for j in shared_data.sensor_dic[shared_data.sensor]:
                     plt.plot(eval("shared_data." + shared_data.data_using)[:,j])
             plt.legend(labels=["x", "y", "z"])
-            #### plt.savefig(data_dir + "/" + "preview.png")
+            plt.savefig(data_dir + "/" + "preview.png")
             plt.close()
-            # sg_window["data_preview"].update(data=get_img_data(data_dir + "/preview.png"))
+            sg_window["data_preview"].update(data=get_img_data(data_dir + "/preview.png"))
             #sg_window["data_preview"].update(data=get_img_data(data_dir + "/preview.png"), size=(shared_data.zoom_dic[shared_data.zoom_rate][0] * dpi, shared_data.zoom_dic[shared_data.zoom_rate][1] * dpi))
         else:
             sg_window["data_preview"].update(data=get_img_data(data_dir + "/init.png"))
@@ -743,23 +755,20 @@ def update_status(sg_window, event, values, shared_data):
             
             # mode
             if (shared_data.mode == "Spectral Amplitude"):
-                #### sg_window["fig_norm"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "norm" + shared_data.sensor + "am.png"))
-                #### sg_window["fig_x"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "0" + shared_data.sensor + "am.png"))
-                #### sg_window["fig_y"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "1" + shared_data.sensor + "am.png"))
-                #### sg_window["fig_z"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "2" + shared_data.sensor + "am.png"))
-                pass
+                sg_window["fig_norm"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "norm" + shared_data.sensor + "am.png"))
+                sg_window["fig_x"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "0" + shared_data.sensor + "am.png"))
+                sg_window["fig_y"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "1" + shared_data.sensor + "am.png"))
+                sg_window["fig_z"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "2" + shared_data.sensor + "am.png"))
             elif(shared_data.mode == "Spectrogram"):
-                #### sg_window["fig_norm"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "norm" + shared_data.sensor + "sp.png"))
-                #### sg_window["fig_x"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "0" + shared_data.sensor + "sp.png"))
-                #### sg_window["fig_y"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "1" + shared_data.sensor + "sp.png"))
-                #### sg_window["fig_z"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "2" + shared_data.sensor + "sp.png"))
-                pass
+                sg_window["fig_norm"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "norm" + shared_data.sensor + "sp.png"))
+                sg_window["fig_x"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "0" + shared_data.sensor + "sp.png"))
+                sg_window["fig_y"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "1" + shared_data.sensor + "sp.png"))
+                sg_window["fig_z"].update(data=get_img_data(data_dir + "/" + remove_ext(eval("shared_data." + shared_data.data_using + "_file_name")) + "2" + shared_data.sensor + "sp.png"))
         else:
-            #### sg_window["fig_norm"].update(data=get_img_data(data_dir + "/init.png"))
-            #### sg_window["fig_x"].update(data=get_img_data(data_dir + "/init_s.png"))
-            #### sg_window["fig_y"].update(data=get_img_data(data_dir + "/init_s.png"))
-            #### sg_window["fig_z"].update(data=get_img_data(data_dir + "/init_s.png"))
-            pass
+            sg_window["fig_norm"].update(data=get_img_data(data_dir + "/init.png"))
+            sg_window["fig_x"].update(data=get_img_data(data_dir + "/init_s.png"))
+            sg_window["fig_y"].update(data=get_img_data(data_dir + "/init_s.png"))
+            sg_window["fig_z"].update(data=get_img_data(data_dir + "/init_s.png"))
 
         if (shared_data.sensor == "Accelerometer"):
             sg_window["sp_peak_amp1"].update(shared_data.data1_0_peak_amp)
@@ -855,8 +864,6 @@ def update_status(sg_window, event, values, shared_data):
                 sg_window["coh_norm"].update("None")
 
     sg_window["progress"].update("--%")
-    elapsed_time = time.time() - start
-    print(f"\ntime: {elapsed_time}\n")
 #spectrogram_analize(data[:, 0:3].T, fs, segment_duration * fs)
 
 #power_density_analize(data[:, 0:3].T, fs, segment_duration * fs)
@@ -1189,7 +1196,7 @@ layout=[
 layout=[
     [sg.Column([[data_input_frame], [settings_frame], [settings_frame2], [results_wrapper]], scrollable=True), sg.Column([[preview_frame], [graph_wrapper]], scrollable=True)],
 ]
-sg_window = sg.Window("tremor analysis", layout, resizable=True)
+sg_window = sg.Window("refact test", layout, resizable=True)
 while True:
     event, values = sg_window.read()
     if (event == sg.WIN_CLOSED):

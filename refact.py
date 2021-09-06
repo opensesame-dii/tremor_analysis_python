@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageTk
 import numpy as np
 from scipy import signal
-import matplotlib as m
 from matplotlib import mlab
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import PySimpleGUI as sg
-import matplotlib
 import pandas as pd
-matplotlib.use('TkAgg')
+
+from matplotlib import use
+use('TkAgg')
 
 # number of sensor
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
