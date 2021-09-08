@@ -5,7 +5,7 @@ from os import makedirs, path
 from io import BytesIO
 from shutil import rmtree
 import matplotlib.pyplot as plt
-import copy
+from copy import deepcopy
 
 from PIL import Image, ImageTk
 import numpy as np
@@ -17,35 +17,6 @@ import pandas as pd
 
 from matplotlib import use
 use('TkAgg')
-
-# number of sensor
-# e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
-SENSORS = 3
-
-# this directory stores figure png files
-DATA_DIR = path.join(path.dirname(path.abspath(__file__)), ".data")
-
-# regenerate data directory when program launched
-try:
-    rmtree(DATA_DIR)
-except FileNotFoundError:
-    pass
-makedirs(DATA_DIR)
-
-# figure size settings
-dpi = 97
-figsize_big = (12, 3)
-figsize_small = (4, 3)
-figsize_pixel_big = (figsize_big[0] * dpi, figsize_big[1] * dpi)
-figsize_pixel_small = (figsize_small[0] * dpi, figsize_small[1] * dpi)
-
-# generate blank figure for initialize
-plt.figure(dpi=dpi, figsize=figsize_big)
-plt.savefig(DATA_DIR + "/init.png")
-plt.close()
-plt.figure(dpi=dpi, figsize=figsize_small)
-plt.savefig(DATA_DIR + "/init_s.png")
-plt.close()
 
 def remove_ext(filename):
     return path.splitext(path.basename(filename))[0]
@@ -77,8 +48,40 @@ def update_status(sg_window, event, values, data_structure):
     """
     pass
 
-class DataStructure():
+class AppData():
     def __init__(self):
+        # number of sensor
+        # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
+        self.SENSORS = 3
+
+        # this directory stores figure png files
+        self.DATA_DIR = path.join(path.dirname(path.abspath(__file__)), ".data")
+
+        # regenerate data directory when program launched
+        try:
+            rmtree(self.DATA_DIR)
+        except FileNotFoundError:
+            pass
+        makedirs(self.DATA_DIR)
+
+        # figure size settings
+        self.dpi = 97
+        self.figsize_big = (12, 3)
+        self.figsize_small = (4, 3)
+        self.figsize_pixel_big = (self.figsize_big[0] * self.dpi, self.figsize_big[1] * self.dpi)
+        self.figsize_pixel_small = (self.figsize_small[0] * self.dpi, self.figsize_small[1] * self.dpi)
+
+        # generate blank figure for initialize
+        # いらないかも
+        plt.figure(dpi=self.dpi, figsize=self.figsize_big)
+        plt.savefig(self.DATA_DIR + "/init.png")
+        plt.close()
+        plt.figure(dpi=self.dpi, figsize=self.figsize_small)
+        plt.savefig(self.DATA_DIR + "/init_s.png")
+        plt.close()
+
+
+
         self.sampling_rate = 200
         self.segment_duration_sec = 5
         self.frame_range = [0, -1]
@@ -89,43 +92,67 @@ class DataStructure():
 
         self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
         self.current_mode = 0
-        self.sensors = ["sensor"+str(i + 1) for i in range(SENSORS)] # "sensor1", "sensor2", ...
+        self.sensors = ["sensor"+str(i + 1) for i in range(self.SENSORS)] # "sensor1", "sensor2", ...
         
         empty = [[None, None, None, None], [None, None, None, None], [None, None, None, None]]
 
         self.results = {
             0: { # file 1
-                "sa_peak_amplitude" : copy.deepcopy(empty) , # on "spectral amplitude" mode
-                "sa_peak_frequency" : copy.deepcopy(empty) ,
-                "sa_fwhm"           : copy.deepcopy(empty) ,
-                "sa_hwp"            : copy.deepcopy(empty) ,
-                "sa_tsi"            : copy.deepcopy(empty) ,
+                "sa_peak_amplitude" : deepcopy(empty) , # on "spectral amplitude" mode
+                "sa_peak_frequency" : deepcopy(empty) ,
+                "sa_fwhm"           : deepcopy(empty) ,
+                "sa_hwp"            : deepcopy(empty) ,
+                "sa_tsi"            : deepcopy(empty) ,
 
-                "sp_peak_amplitude" : copy.deepcopy(empty) , # on "Spectrogram" mode
-                "sp_peak_frequency" : copy.deepcopy(empty) ,
-                "sp_peak_time"      : copy.deepcopy(empty)
+                "sp_peak_amplitude" : deepcopy(empty) , # on "Spectrogram" mode
+                "sp_peak_frequency" : deepcopy(empty) ,
+                "sp_peak_time"      : deepcopy(empty)
             },
             1: { # file 2
-                "sa_peak_amplitude" : copy.deepcopy(empty) , # on "spectral amplitude" mode
-                "sa_peak_frequency" : copy.deepcopy(empty) ,
-                "sa_fwhm"           : copy.deepcopy(empty) ,
-                "sa_hwp"            : copy.deepcopy(empty) ,
-                "sa_tsi"            : copy.deepcopy(empty) ,
+                "sa_peak_amplitude" : deepcopy(empty) , # on "spectral amplitude" mode
+                "sa_peak_frequency" : deepcopy(empty) ,
+                "sa_fwhm"           : deepcopy(empty) ,
+                "sa_hwp"            : deepcopy(empty) ,
+                "sa_tsi"            : deepcopy(empty) ,
 
-                "sp_peak_amplitude" : copy.deepcopy(empty) , # on "Spectrogram" mode
-                "sp_peak_frequency" : copy.deepcopy(empty) ,
-                "sp_peak_time"      : copy.deepcopy(empty)
+                "sp_peak_amplitude" : deepcopy(empty) , # on "Spectrogram" mode
+                "sp_peak_frequency" : deepcopy(empty) ,
+                "sp_peak_time"      : deepcopy(empty)
             },
             -1: { # relational values between file1 and file 2
-                "coherence"         : copy.deepcopy(empty) ,
+                "coherence"         : deepcopy(empty) ,
             }
         }
 
+    def stft(self):
+        pass
+
+    def spectrogram_analize(self):
+        pass
+
+    def power_density_analize(self):
+        pass
+
+    def wavelet_analize(self):
+        pass
+
+    def full_width_half_maximum(self):
+        pass
+
+    def tremor_stability_index(self):
+        pass
+
+    def coference(self):
+        pass
+
+    def update(self):
+        pass
 
 
 
 
-data_structure = DataStructure()
+
+app_data = AppData()
 
 # GUI setup
 
@@ -140,7 +167,7 @@ data_input_frame = sg.Frame(
 preview_frame = sg.Frame(
     layout=[
         [
-            sg.Image(data=get_img_data(DATA_DIR + "/init.png"), key="data_preview")
+            sg.Image(data=get_img_data(app_data.DATA_DIR + "/init.png"), key="data_preview")
         ],
         [sg.Button("popup...", key="popup_preview")]
     ], title="data preview")
@@ -247,11 +274,11 @@ results_wrapper = sg.Frame(
 
 graph_wrapper = sg.Frame(
     layout=[
-        [sg.Image(data=get_img_data(DATA_DIR + "/init.png"), key="fig_norm")],
+        [sg.Image(data=get_img_data(app_data.DATA_DIR + "/init.png"), key="fig_norm")],
         [
-            sg.Image(data=get_img_data(DATA_DIR + "/init_s.png"), key="fig_x"),
-            sg.Image(data=get_img_data(DATA_DIR + "/init_s.png"), key="fig_y"), 
-            sg.Image(data=get_img_data(DATA_DIR + "/init_s.png"), key="fig_z")
+            sg.Image(data=get_img_data(app_data.DATA_DIR + "/init_s.png"), key="fig_x"),
+            sg.Image(data=get_img_data(app_data.DATA_DIR + "/init_s.png"), key="fig_y"), 
+            sg.Image(data=get_img_data(app_data.DATA_DIR + "/init_s.png"), key="fig_z")
         ]
     ], title="graph"
 )
@@ -275,5 +302,5 @@ while True:
     if (event == sg.WIN_CLOSED):
         break
     else:
-        update_status(sg_window, event, values, data_structure)
+        update_status(sg_window, event, values, app_data)
 sg_window.close()
