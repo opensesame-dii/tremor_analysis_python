@@ -22,7 +22,7 @@ matplotlib.use('TkAgg')
 SENSORS = 3
 
 # this directory stores figure png files
-DATA_DIR = path.join(path.dirname(path.abspath(__file__)), ".data")
+DATA_DIR = path.join(path.dirname(path.abspath(__file__)), ".data") #ファイルの場所
 
 # regenerate data directory when program launched
 try:
@@ -31,23 +31,23 @@ except FileNotFoundError:
     pass
 makedirs(DATA_DIR)
 
-# figure size settings
+# figure size settings #白い画像を生成
 dpi = 97
 figsize_big = (12, 3)
 figsize_small = (4, 3)
 figsize_pixel_big = (figsize_big[0] * dpi, figsize_big[1] * dpi)
 figsize_pixel_small = (figsize_small[0] * dpi, figsize_small[1] * dpi)
 
-# generate blank figure for initialize
+# generate blank figure for initialize #画像を保存
 plt.figure(dpi=dpi, figsize=figsize_big)
 plt.savefig(DATA_DIR + "/init.png")
 plt.close()
 plt.figure(dpi=dpi, figsize=figsize_small)
 plt.savefig(DATA_DIR + "/init_s.png")
-plt.close()
+plt.close()  #ここまで初期化
 
 def remove_ext(filename):
-    return path.splitext(path.basename(filename))[0]
+    return path.splitext(path.basename(filename))[0]  #拡張子を消す
 
 
 def get_img_data(f, maxsize=(1200, 850)):
@@ -59,11 +59,11 @@ def get_img_data(f, maxsize=(1200, 850)):
     bio = BytesIO()
     img.save(bio, format="PNG")
     del img
-    return bio.getvalue()
+    return bio.getvalue()  #
 
 def detect_data_warning(data):
     """
-    detect max or min adjoining
+    detect max or min adjoining      #変なデータをはじく警告
     """
     max_idx = np.where(data == data.max())[0]
     min_idx = np.where(data == data.min())[0]
@@ -72,7 +72,7 @@ def detect_data_warning(data):
 
 def update_status(sg_window, event, values, data_structure):
     """
-    gui update
+    gui update　　#まだできてない
     """
     pass
 
