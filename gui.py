@@ -26,9 +26,98 @@ matplotlib.use('TkAgg')
 
 
 
+import tkinter as tk
+from tkinter import ttk
+
+class Application(tk.Frame):
+    def __init__(self,master):
+        super().__init__(master)
+        self.pack()
+
+        #self.master.geometry("300x300")
+        #self.master.title("Tkinter with Class")
+
+        self.create_widgets()
+
+
+    # Create Widgets function
+    def create_widgets(self):
+        #情報フレームとグラフフレームの作成
+        self.info_frame = tkinter.Frame(self, bg="#778899")
+        self.img_frame = tkinter.Frame(self, bg="#778899")
+
+        #データを選択するフレーム
+        self.data_input_frame = ttk.Frame(self.info_frame,relief="groove",borderwidth=5)
+        self.data_label1 = ttk.Label(
+            self.data_input_frame,
+            text="data1:"
+            )
+        self.data_label1.grid(row=0, column=0) 
+
+        self.brows_button1 = ttk.Button(self.data_input_frame,text="Brows")
+        self.brows_button1.bind("<ButtonPress>")
+        self.brows_button1.grid(row=0, column=1)  
+
+        self.clear_button = ttk.Button(self.data_input_frame,text="clear")
+        self.clear_button.grid(row=0, column=2)
+
+        self.data_label2 = ttk.Label(
+            self.data_input_frame,
+            text = "data2:"
+        )
+        self.data_label2.grid(row=1, column=0)
+
+        self.brows_button2 = ttk.Button(self.data_input_frame,text="Brows")
+        self.brows_button2.bind("<ButtonPress>")
+        self.brows_button2.grid(row=1, column=1)
+
+        self.progress = ttk.Label(
+            self.data_input_frame,
+            text= "progress:"
+        )
+        self.progress.grid(row=1, column=2)
+        self.progress_bar = ttk.Label(
+            self.data_input_frame,
+            text= "--%"
+        )
+        self.progress_bar.grid(row=1, column=3)
+
+        
+
+        #Entry
+        self.name = tk.StringVar()
+        self.entry_name = ttk.Entry(self)
+        self.entry_name.configure(textvariable = self.name)
+        self.entry_name.pack()
+
+        #Label2
+        self.label_name=ttk.Label(self)
+        self.label_name.configure(text = 'Please input something in Entry')
+        self.label_name.pack()
+
+    # Event Callback Function
+    def say_Hello(self):
+        print("Hello, World")  # on python console
+        self.label_hello.configure(text="I Have benn Clicked!")
+        print(self.name.get())
+        self.label_name.configure(text=self.name.get())
+
+
+
+#def main():
+  #  root = tk.Tk()
+   # app = Application(master=root)#Inheritクラスの継承！
+   # app.mainloop()
+
+#if __name__ == "__main__":
+ #   main()
+
+Application().mainloop
+
+
 
 #GUI
-
+"""
 #メインウィンドウの設定
 root = Tk()
 root.title("tremor")
@@ -303,5 +392,5 @@ can_z.grid(row=0, column=2)
 root.mainloop()
 
 
-        
+"""     
 
