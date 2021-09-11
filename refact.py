@@ -7,7 +7,7 @@ from io import BytesIO
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
-import tkinter
+import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -87,7 +87,7 @@ def update_status(sg_window, event, values, data_structure):
     """
     pass
 
-class MainApp(tkinter.Tk):
+class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
@@ -105,8 +105,8 @@ class MainApp(tkinter.Tk):
      
 
         #情報フレームとグラフフレームの作成
-        info_frame = tkinter.Frame(self, bg="#778899")
-        img_frame = tkinter.Frame(self, bg="#778899")
+        info_frame = tk.Frame(self, bg="#778899")
+        img_frame = tk.Frame(self, bg="#778899")
 
         #データを選択するフレーム
         data_input_frame = ttk.Frame(info_frame,relief="groove",borderwidth=5)
@@ -164,13 +164,13 @@ class MainApp(tkinter.Tk):
         frame_range = ttk.Label(settings_frame2, text="Frame range:")
         frame_range.grid(row=2, column=0)
 
-        self.seg_txt = tkinter.Entry(settings_frame2,width=20,)
+        self.seg_txt = tk.Entry(settings_frame2,width=20,)
         self.seg_txt.grid(row=0, column=1)
-        self.samp_txt = tkinter.Entry(settings_frame2, width=20)
+        self.samp_txt = tk.Entry(settings_frame2, width=20)
         self.samp_txt.grid(row=1, column=1)
-        self.range_txt1 = tkinter.Entry(settings_frame2, width=20)
+        self.range_txt1 = tk.Entry(settings_frame2, width=20)
         self.range_txt1.grid(row=2, column=1)
-        self.range_txt2 = tkinter.Entry(settings_frame2,width=20)
+        self.range_txt2 = tk.Entry(settings_frame2,width=20)
         self.range_txt2.grid(row=2, column=3)
         self.range_to = ttk.Label(settings_frame2, text="to")
         self.range_to.grid(row=2, column=2)
@@ -181,94 +181,57 @@ class MainApp(tkinter.Tk):
         result_frame = ttk.Frame(info_frame, relief="groove")
 
         self.clip = ttk.Button(result_frame, text="copy to clipboard")
-        self.clip.grid(row=0, column=0,sticky=tkinter.W)
-        #data1用
+        self.clip.grid(row=0, column=0,sticky=tk.W)
+
+        #data出力のフレーム
         data1_frame = ttk.Frame(result_frame, relief="groove")
-        spa = ttk.Label(data1_frame, text="Spectrogram Peak Amplitude:")
-        spa.grid(row=0, column=0)
-        spf = ttk.Label(data1_frame, text="Spectrogram Peak Frequency(Hz): ")
-        spf.grid(row=1, column=0)
-        spt = ttk.Label(data1_frame, text = "Spectrogram Peak Time(s): ")
-        spt.grid(row=2, column=0)
-        wpa = ttk.Label(data1_frame, text = "Whole Peak Amplitude: ")
-        wpa.grid(row=3, column=0)
-        wpf = ttk.Label(data1_frame, text = "Whole Peak Frequency(Hz): ")
-        wpf.grid(row=4, column=0)
-        fhm = ttk.Label(data1_frame, text = "Full-width Half Maximum(Hz): ")
-        fhm.grid(row=5, column=0)
-        hp = ttk.Label(data1_frame, text = "Half-width Power: ")
-        hp.grid(row=6, column=0)
-        tsi = ttk.Label(data1_frame, text = "Tremor Stability Index: ")
-        tsi.grid(row=7, column=0)
-
-        self.spa_txt = tkinter.Entry(data1_frame,width=20)
-        self.spa_txt.insert(tkinter.END,"None")
-        self.spa_txt.grid(row=0, column=1)
-        self.spf_txt = tkinter.Entry(data1_frame, width=20)
-        self.spf_txt.insert(tkinter.END,"None")
-        self.spf_txt.grid(row=1, column=1)
-        self.spt_txt = tkinter.Entry(data1_frame,width=20)
-        self.spt_txt.insert(tkinter.END,"None")
-        self.spt_txt.grid(row=2, column=1)
-        self.wpa_txt = tkinter.Entry(data1_frame, width=20)
-        self.wpa_txt.insert(tkinter.END,"None")
-        self.wpa_txt.grid(row=3, column=1)
-        self.wpf_txt = tkinter.Entry(data1_frame, width=20)
-        self.wpf_txt.insert(tkinter.END,"None")
-        self.wpf_txt.grid(row=4, column=1)
-        self.fhm_txt = tkinter.Entry(data1_frame, width=20)
-        self.fhm_txt.insert(tkinter.END,"None")
-        self.fhm_txt.grid(row=5, column=1)
-        self.hp_txt = tkinter.Entry(data1_frame, width=20)
-        self.hp_txt.insert(tkinter.END,"None")
-        self.hp_txt.grid(row=6, column=1)
-        self.tsi_txt = tkinter.Entry(data1_frame, width=20)
-        self.tsi_txt.insert(tkinter.END,"None")
-        self.tsi_txt.grid(row=7, column=1)
-
-        #data2
         data2_frame = ttk.Frame(result_frame, relief="groove")
-        spa2 = ttk.Label(data2_frame, text="Spectrogram Peak Amplitude:")
-        spa2.grid(row=0, column=0)
-        spf2 = ttk.Label(data2_frame, text="Spectrogram Peak Frequency(Hz): ")
-        spf2.grid(row=1, column=0)
-        spt2 = ttk.Label(data2_frame, text = "Spectrogram Peak Time(s): ")
-        spt2.grid(row=2, column=0)
-        wpa2 = ttk.Label(data2_frame, text = "Whole Peak Amplitude: ")
-        wpa2.grid(row=3, column=0)
-        wpf2 = ttk.Label(data2_frame, text = "Whole Peak Frequency(Hz): ")
-        wpf2.grid(row=4, column=0)
-        fhm2 = ttk.Label(data2_frame, text = "Full-width Half Maximum(Hz): ")
-        fhm2.grid(row=5, column=0)
-        hp2 = ttk.Label(data2_frame, text = "Half-width Power: ")
-        hp2.grid(row=6, column=0)
-        tsi2 = ttk.Label(data2_frame, text = "Tremor Stability Index: ")
-        tsi2.grid(row=7, column=0)
 
-        self.spa2_txt = tkinter.Entry(data2_frame,width=20)
-        self.spa2_txt.insert(tkinter.END,"None")
-        self.spa2_txt.grid(row=0, column=1)
-        self.spf2_txt = tkinter.Entry(data2_frame, width=20)
-        self.spf2_txt.insert(tkinter.END,"None")
-        self.spf2_txt.grid(row=1, column=1)
-        self.spt2_txt = tkinter.Entry(data2_frame,width=20)
-        self.spt2_txt.insert(tkinter.END,"None")
-        self.spt2_txt.grid(row=2, column=1)
-        self.wpa2_txt = tkinter.Entry(data2_frame, width=20)
-        self.wpa2_txt.insert(tkinter.END,"None")
-        self.wpa2_txt.grid(row=3, column=1)
-        self.wpf2_txt = tkinter.Entry(data2_frame, width=20)
-        self.wpf2_txt.insert(tkinter.END,"None")
-        self.wpf2_txt.grid(row=4, column=1)
-        self.fhm2_txt = tkinter.Entry(data2_frame, width=20)
-        self.fhm2_txt.insert(tkinter.END,"None")
-        self.fhm2_txt.grid(row=5, column=1)
-        self.hp2_txt = tkinter.Entry(data2_frame, width=20)
-        self.hp2_txt.insert(tkinter.END,"None")
-        self.hp2_txt.grid(row=6, column=1)
-        self.tsi2_txt = tkinter.Entry(data2_frame, width=20)
-        self.tsi2_txt.insert(tkinter.END,"None")
-        self.tsi2_txt.grid(row=7, column=1)
+        data = [data1_frame,data2_frame]
+
+        for data_ in data:        
+            spa = ttk.Label(data_, text="Spectrogram Peak Amplitude:")
+            spa.grid(row=0, column=0)
+            spf = ttk.Label(data_, text="Spectrogram Peak Frequency(Hz): ")
+            spf.grid(row=1, column=0)
+            spt = ttk.Label(data_, text = "Spectrogram Peak Time(s): ")
+            spt.grid(row=2, column=0)
+            wpa = ttk.Label(data_, text = "Whole Peak Amplitude: ")
+            wpa.grid(row=3, column=0)
+            wpf = ttk.Label(data_, text = "Whole Peak Frequency(Hz): ")
+            wpf.grid(row=4, column=0)
+            fhm = ttk.Label(data_, text = "Full-width Half Maximum(Hz): ")
+            fhm.grid(row=5, column=0)
+            hp = ttk.Label(data_, text = "Half-width Power: ")
+            hp.grid(row=6, column=0)
+            tsi = ttk.Label(data_, text = "Tremor Stability Index: ")
+            tsi.grid(row=7, column=0)
+
+            self.spa_txt = tk.Entry(data1_frame,width=20)
+            self.spa_txt.insert(tk.END,"None")
+            self.spa_txt.grid(row=0, column=1)
+            self.spf_txt = tk.Entry(data_, width=20)
+            self.spf_txt.insert(tk.END,"None")
+            self.spf_txt.grid(row=1, column=1)
+            self.spt_txt = tk.Entry(data_,width=20)
+            self.spt_txt.insert(tk.END,"None")
+            self.spt_txt.grid(row=2, column=1)
+            self.wpa_txt = tk.Entry(data_, width=20)
+            self.wpa_txt.insert(tk.END,"None")
+            self.wpa_txt.grid(row=3, column=1)
+            self.wpf_txt = tk.Entry(data_, width=20)
+            self.wpf_txt.insert(tk.END,"None")
+            self.wpf_txt.grid(row=4, column=1)
+            self.fhm_txt = tk.Entry(data_, width=20)
+            self.fhm_txt.insert(tk.END,"None")
+            self.fhm_txt.grid(row=5, column=1)
+            self.hp_txt = tk.Entry(data_, width=20)
+            self.hp_txt.insert(tk.END,"None")
+            self.hp_txt.grid(row=6, column=1)
+            self.tsi_txt = tk.Entry(data_, width=20)
+            self.tsi_txt.insert(tk.END,"None")
+            self.tsi_txt.grid(row=7, column=1)
+
 
         #coherence
         coherence_frame = ttk.Frame(result_frame, relief="groove")
@@ -281,21 +244,22 @@ class MainApp(tkinter.Tk):
         coh_norm = ttk.Label(coherence_frame, text="coherence(norm): ")
         coh_norm.grid(row=3, column=0)
 
-        self.x_txt = tkinter.Entry(coherence_frame, width=20)
-        self.x_txt.insert(tkinter.END,"None")
+        self.x_txt = tk.Entry(coherence_frame, width=20)
+        self.x_txt.insert(tk.END,"None")
         self.x_txt.grid(row=0, column=1)
-        self.y_txt = tkinter.Entry(coherence_frame, width=20)
-        self.y_txt.insert(tkinter.END,"None")
+        self.y_txt = tk.Entry(coherence_frame, width=20)
+        self.y_txt.insert(tk.END,"None")
         self.y_txt.grid(row=1, column=1)
-        self.z_txt = tkinter.Entry(coherence_frame, width=20)
-        self.z_txt.insert(tkinter.END,"None")
+        self.z_txt = tk.Entry(coherence_frame, width=20)
+        self.z_txt.insert(tk.END,"None")
         self.z_txt.grid(row=2, column=1)
-        self.norm_txt = tkinter.Entry(coherence_frame, width=20)
-        self.norm_txt.insert(tkinter.END,"None")
+        self.norm_txt = tk.Entry(coherence_frame, width=20)
+        self.norm_txt.insert(tk.END,"None")
         self.norm_txt.grid(row=3, column=1)
 
 
         #data previewのグラフ
+
 
         can = ttk.Frame(img_frame)
         fig = Figure(figsize = (10,3),dpi = 100)
@@ -339,13 +303,13 @@ class MainApp(tkinter.Tk):
         #フレームの配置
         info_frame.grid(row=0, column=0)
         img_frame.grid(row=0, column=1)
-        data_input_frame.grid(row = 0, column=0, padx=10, pady=20,sticky=tkinter.W)
-        settings_frame.grid(row=2, column=0, padx=10, pady=5,sticky=tkinter.W)
-        settings_frame2.grid(row=3, column=0, padx=10, pady=5,sticky=tkinter.W)
-        result_frame.grid(row=4, column=0,sticky=tkinter.W, padx=10)
-        data1_frame.grid(row=1, column=0,sticky=tkinter.W,pady=10)
-        data2_frame.grid(row=2, column=0,sticky=tkinter.W, pady=10)
-        coherence_frame.grid(row=3,column=0, sticky=tkinter.W,pady=10)
+        data_input_frame.grid(row = 0, column=0, padx=10, pady=20,sticky=tk.W)
+        settings_frame.grid(row=2, column=0, padx=10, pady=5,sticky=tk.W)
+        settings_frame2.grid(row=3, column=0, padx=10, pady=5,sticky=tk.W)
+        result_frame.grid(row=4, column=0,sticky=tk.W, padx=10)
+        data1_frame.grid(row=1, column=0,sticky=tk.W,pady=10)
+        data2_frame.grid(row=2, column=0,sticky=tk.W, pady=10)
+        coherence_frame.grid(row=3,column=0, sticky=tk.W,pady=10)
         can.grid(row=0, column=0)
         can2.grid(row=1, column=0)
         can3.grid(row=2, column=0)
