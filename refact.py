@@ -279,25 +279,19 @@ class MainApp(tk.Tk):
         #canvas2.get_tk_widget().grid(row=4, column=1)
 
         can3 = ttk.Frame(img_frame)
+
         can_x = ttk.Frame(can3)
-        fig3 = Figure(figsize = (2.5,2.5),dpi = 100)
-        ax = fig3.add_subplot(1,1,1)
-        self.canvas_x = FigureCanvasTkAgg(fig3, can_x)
-        self.canvas_x.draw()
-        self.canvas_x.get_tk_widget().pack()
-        self.toolbar3 = NavigationToolbar2Tk(self.canvas_x, can_x)
-
         can_y = ttk.Frame(can3)
-        self.canvas_y = FigureCanvasTkAgg(fig3, can_y)
-        self.canvas_y.draw()
-        self.canvas_y.get_tk_widget().pack()
-        self.toolbar4 = NavigationToolbar2Tk(self.canvas_y, can_y)
-
         can_z = ttk.Frame(can3)
-        self.canvas_z = FigureCanvasTkAgg(fig3, can_z)
-        self.canvas_z.draw()
-        self.canvas_z.get_tk_widget().pack()
-        self.toolbar5 = NavigationToolbar2Tk(self.canvas_z, can_z)
+
+        can_list = [can_x,can_y,can_z]
+        for can_ in can_list:
+            fig3 = Figure(figsize = (2.5,2.5),dpi = 100)
+            ax = fig3.add_subplot(1,1,1)
+            self.canvas_ = FigureCanvasTkAgg(fig3, can_)
+            self.canvas_.draw()
+            self.canvas_.get_tk_widget().pack()
+            self.toolbar3 = NavigationToolbar2Tk(self.canvas_, can_)
 
 
         #フレームの配置
