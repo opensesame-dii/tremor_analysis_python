@@ -187,9 +187,9 @@ class MainApp(tk.Tk):
         data1_frame = ttk.Frame(result_frame, relief="groove")
         data2_frame = ttk.Frame(result_frame, relief="groove")
 
-        data = [data1_frame,data2_frame]
+        self.data_frames = [data1_frame,data2_frame]
 
-        for data_ in data:        
+        for data_ in self.data_frames:        
             spa = ttk.Label(data_, text="Spectrogram Peak Amplitude:")
             spa.grid(row=0, column=0)
             spf = ttk.Label(data_, text="Spectrogram Peak Frequency(Hz): ")
@@ -207,7 +207,7 @@ class MainApp(tk.Tk):
             tsi = ttk.Label(data_, text = "Tremor Stability Index: ")
             tsi.grid(row=7, column=0)
 
-            self.spa_txt = tk.Entry(data1_frame,width=20)
+            self.spa_txt = tk.Entry(data_,width=20)
             self.spa_txt.insert(tk.END,"None")
             self.spa_txt.grid(row=0, column=1)
             self.spf_txt = tk.Entry(data_, width=20)
@@ -386,12 +386,14 @@ class MainApp(tk.Tk):
                 "coherence"         : deepcopy(empty) ,
             }
         }
+
     #ファイルを選ぶ関数
     def file_dialog(self, event):
         ftypes =[('EXCELファイル/CSVファイル', '*.xlsx'),
             ('EXCELファイル/CSVファイル', '*.xlsm'),
             ('EXCELファイル/CSVファイル', '*.csv')]
         fname = filedialog.askopenfilename(filetypes=ftypes)
+        print(fname)
 
     def stft(self, x, fs, nperseg, segment_duration, noverlap=None):
         """
