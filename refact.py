@@ -253,18 +253,23 @@ class MainApp(tk.Tk):
         coh_norm = ttk.Label(coherence_frame, text="coherence(norm): ")
         coh_norm.grid(row=3, column=0)
 
-        self.x_txt = tk.Entry(coherence_frame, width=20)
-        self.x_txt.insert(tk.END,"None")
-        self.x_txt.grid(row=0, column=1)
-        self.y_txt = tk.Entry(coherence_frame, width=20)
-        self.y_txt.insert(tk.END,"None")
-        self.y_txt.grid(row=1, column=1)
-        self.z_txt = tk.Entry(coherence_frame, width=20)
-        self.z_txt.insert(tk.END,"None")
-        self.z_txt.grid(row=2, column=1)
-        self.norm_txt = tk.Entry(coherence_frame, width=20)
-        self.norm_txt.insert(tk.END,"None")
-        self.norm_txt.grid(row=3, column=1)
+        self.coherence_txts = []
+        x_txt = tk.Entry(coherence_frame, width=20)
+        x_txt.insert(tk.END,"None")
+        x_txt.grid(row=0, column=1)
+        self.coherence_txts.append(x_txt)
+        y_txt = tk.Entry(coherence_frame, width=20)
+        y_txt.insert(tk.END,"None")
+        y_txt.grid(row=1, column=1)
+        self.coherence_txts.append(y_txt)
+        z_txt = tk.Entry(coherence_frame, width=20)
+        z_txt.insert(tk.END,"None")
+        z_txt.grid(row=2, column=1)
+        self.coherence_txts.append(z_txt)
+        norm_txt = tk.Entry(coherence_frame, width=20)
+        norm_txt.insert(tk.END,"None")
+        norm_txt.grid(row=3, column=1)
+        self.coherence_txts.append(norm_txt)
 
 
         #data previewのグラフ
@@ -435,7 +440,26 @@ class MainApp(tk.Tk):
     def gui_update(self, file_update=None, recalculation=False, change_target=False):
         if (recalculation):
             if (self.data[0] is not None and self.data[1] is not None):
-                #coherence
+                for sensor_idx in range(self.SENSORS_NUM):
+                    for axis_idx in range(3):
+                        self.coherence(
+                            sensor_idx, 
+                            axis_idx, 
+                            self.data[0][:, 3 * sensor_idx + axis_idx], 
+                            self.data[1][:, 3 * sensor_idx + axis_idx], 
+                            self.sampling_rate, 
+                            self.frame_range[0], 
+                            self.frame_range[1],
+                        )
+                    self.coherence(
+                        sensor_idx, 
+                        3, 
+                        np.linalg.norm(self.data[0][:, 3 * sensor_idx: 3 * sensor_idx + 3], axis=1),
+                        np.linalg.norm(self.data[1][:, 3 * sensor_idx: 3 * sensor_idx + 3], axis=1),
+                        self.sampling_rate, 
+                        self.frame_range[0], 
+                        self.frame_range[1],
+                    )
                 pass
             
             target_data = []
@@ -446,8 +470,19 @@ class MainApp(tk.Tk):
                 target_data.append(file_update)
             
             for data_idx in target_data:
-                for sensor_idx in range(3):
+                for sensor_idx in range(self.SENSORS_NUM):
                     self.spectrogram_analize(
+                        data_idx, 
+                        sensor_idx, 
+                        self.data[data_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
+                        self.sampling_rate, 
+                        self.sampling_rate * self.segment_duration_sec, 
+                        self.filenames[data_idx], 
+                        self.sensors[sensor_idx], 
+                        self.frame_range[0], 
+                        self.frame_range[1],
+                    )
+                    self.power_density_analize(
                         data_idx, 
                         sensor_idx, 
                         self.data[data_idx][:, sensor_idx*3: sensor_idx*3 + 3].T, 
@@ -456,7 +491,7 @@ class MainApp(tk.Tk):
                         self.filenames[data_idx], 
                         self.sensors[sensor_idx], 
                         self.frame_range[0], 
-                        self.frame_range[1]
+                        self.frame_range[1],
                     )
                     for axis_idx in range(4):
                         pass
@@ -493,6 +528,9 @@ class MainApp(tk.Tk):
                 # self.data_frames[data].children[key].text = str(self.results[data][self.key_lst[key]][self.current_mode][-1])
                 self.data_frames[data].children[entry_names[key]].delete(0, "end")
                 self.data_frames[data].children[entry_names[key]].insert(0, str(self.results[data][self.key_lst[key]][self.current_mode][3]))
+        for axis_idx in range(4):
+            self.coherence_txts[axis_idx].delete(0, "end")
+            self.coherence_txts[axis_idx].insert(0, str(self.results[-1]["coherence"][self.current_mode][axis_idx]))
 
     def change_settings(self, event):
         self.sampling_rate = int(self.samp_txt.get()) 
@@ -553,6 +591,13 @@ class MainApp(tk.Tk):
         # セグメントがいくつあるか
         seg = int(np.ceil((x_length - noverlap) / (nperseg - noverlap)))
         #print(seg)
+        # print("----")
+        # print(f"fs: {fs}")
+        # print(f"nperseg: {nperseg}")
+        # print(f"segment_duration: {segment_duration}")
+        # print(f"noverlap: {noverlap}")
+        # print(int(nperseg * seg - noverlap * (seg - 1) - x_length))
+        # print("----")
         # データを nperseg, noverlap に合う長さになるようゼロ埋め
         data = np.append(x, np.zeros(int(nperseg * seg - noverlap * (seg - 1) - x_length)))
         # print("padded data length: {}".format(len(data)))  
@@ -665,6 +710,15 @@ class MainApp(tk.Tk):
             plt.close()
             #print("saved: ", data_dir + "/" + remove_ext(filename) + str(ax) + sensor + "sp.png")
             """
+        self.results[data_idx]["sa_graph"][sensor_idx][3], ax = plt.subplots(figsize=(10,3), dpi=100)
+        im = ax.pcolormesh(t, f, specs[3], cmap="jet", vmin=vmin, vmax=vmax)
+        ax.set_xlabel("Time [sec]")
+        ax.set_ylabel("Frequency [Hz]")
+
+        # axpos = axes.get_position()
+        # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
+        cbar = self.results[data_idx]["sa_graph"][sensor_idx][i].colorbar(im,ax=ax)
+        cbar.set_label("Amplitude")
         """
         plt.figure(dpi=dpi, figsize=wide_figsize)
         plt.pcolormesh(t, f, specs[3], cmap="jet")
@@ -734,14 +788,14 @@ class MainApp(tk.Tk):
 
         data = data_i[:, start: end + 1]
         print("nperseg: {}".format(nperseg))
-
+        print(data.shape)
 
         specs = []
         for i in range(3):
             #################################################################################
             # matlab の detrend の結果と, scipyのdetrend の結果を比較→一致すれば, stftを使いまわして2乗して時間での平均を出せば多分いける
             # scipy の scipy.signal.detrend() が使えるらしい(絶対誤差0.0001以下)
-            spec, f, t = self.stft(detrend(data[i]), fs, self.segment_duration_sec, int(nperseg), int(nperseg * 0.75))
+            spec, f, t = self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec, int(nperseg * 0.75))
             specs.append(np.sum(np.power(np.abs(spec), 1), axis=1) / (len(t)))
             
         # convert to 3-dimensional ndarray
@@ -754,6 +808,11 @@ class MainApp(tk.Tk):
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
 
         for i in range(3):
+            self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=(2.5,2.5), dpi=100)
+            ax.set_ylim(0, vmax * 1.2)
+            ax.plot(f, specs[i])
+            ax.set_xlabel("Frequency [Hz]")
+            ax.set_ylabel("Amplitude")
             """
             plt.figure(dpi=dpi, figsize=narrow_figsize)
             plt.ylim(0, vmax * 1.2)
@@ -762,12 +821,18 @@ class MainApp(tk.Tk):
             #### plt.savefig(data_dir + "/" + remove_ext(filename) + str(i) + sensor + "am.png")
             plt.close()
             """
+        
+        self.results[data_idx]["sp_graph"][sensor_idx][3], ax = plt.subplots(figsize=(10,3), dpi=100)
+        ax.set_ylim(0, vmax * 1.2)
+        ax.plot(f, specs[3])
+        ax.set_xlabel("Frequency [Hz]")
+        ax.set_ylabel("Amplitude")
         """
         plt.figure(dpi=dpi, figsize=wide_figsize)
         plt.ylim(0, np.max(specs[3]) * 1.05)
         plt.plot(f, specs[3])
         """
-        l, u, lv, uv, hwp = self.full_width_half_maximum(f, specs[3])
+        l, u, lv, uv, hwp = self.full_width_half_maximum(data_idx, sensor_idx, f, specs[3])
         fwhm = uv - lv
         print(l, u, lv, uv)
         print(specs[3, int(l)])
@@ -781,7 +846,7 @@ class MainApp(tk.Tk):
         peak_amp = np.max(specs[3, f_offset:])
         peak_idx = np.where(specs[3] == peak_amp)
         peak_freq = f[peak_idx[0][0]]
-        tsi = self.tremor_stability_index(data[0], fs)
+        tsi = self.tremor_stability_index(data_idx, sensor_idx, data[0], fs)
 
         print("=" * 20)
 
@@ -793,6 +858,12 @@ class MainApp(tk.Tk):
         print("Tremor Stability Index: {}".format(tsi))
 
         print("=" * 20)
+
+        self.results[data_idx]["sa_peak_amplitude"][sensor_idx][3] = peak_amp
+        self.results[data_idx]["sa_peak_frequency"][sensor_idx][3] = peak_freq
+        self.results[data_idx]["sa_fwhm"][sensor_idx][3] = fwhm
+        self.results[data_idx]["sa_hwp"][sensor_idx][3] = hwp
+        self.results[data_idx]["sa_tsi"][sensor_idx][3] = tsi
 
         return peak_amp, peak_freq, fwhm, hwp, tsi
 
@@ -891,7 +962,7 @@ class MainApp(tk.Tk):
         q75, q25 = np.percentile(delta_freq, [75 ,25])
         return q75 - q25
 
-    def coherence(self, data_idx, sensor_idx, axis_idx, data1, data2, fs, start=0, end=-1):
+    def coherence(self, sensor_idx, axis_idx, data1, data2, fs, start=0, end=-1):
         """
         now developing
         """
@@ -937,6 +1008,8 @@ class MainApp(tk.Tk):
         # print(Cyx)
         coh = np.sum(Cyx) * df
         print("coherence: ", coh)
+
+        self.results[-1]["coherence"][sensor_idx][axis_idx] = coh
         return coh
 
 
