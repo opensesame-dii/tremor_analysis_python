@@ -278,7 +278,15 @@ class MainApp(tk.Tk):
         toolbar2 = NavigationToolbar2Tk(self.canvas2, can2)
         #canvas2.get_tk_widget().grid(row=4, column=1)
 
-        can3 = ttk.Frame(img_frame)
+        can3 = tk.Canvas(img_frame,width=400, height=300)
+        xbar = tk.Scrollbar(img_frame,can3,orient=tk.HORIZONTAL)
+        xbar.grid(row=1, column=0,sticky=tk.W + tk.E )
+        xbar.config(command=can3.xview)
+        can3.config(xscrollcommand=xbar.set)
+        ybar = tk.Scrollbar(can3,orient=tk.HORIZONTAL)
+        ybar.grid(row=0, column=1,sticky=tk.W + tk.E )
+        ybar.config(command=can3.yview)
+        can3.config(yscrollcommand=ybar.set)
 
         can_x = ttk.Frame(can3)
         can_y = ttk.Frame(can3)
