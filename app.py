@@ -71,7 +71,12 @@ def stft(x, fs, nperseg, noverlap=None):
     t: ndarray
         time instants
     """
-
+    print("----")
+    print(f"fs: {fs}")
+    print(f"nperseg: {nperseg}")
+    print(f"segment_duration: {segment_duration}")
+    print(f"noverlap: {noverlap}")
+    print("----")
     x_length = len(x)
     print("data length: {}".format(x_length))
 
@@ -94,7 +99,12 @@ def stft(x, fs, nperseg, noverlap=None):
     # データを nperseg, noverlap に合う長さになるようゼロ埋め
     data = np.append(x, np.zeros(int(nperseg * seg - noverlap * (seg - 1) - x_length)))
     print("padded data length: {}".format(len(data)))  
-    
+    print("----")
+    print(f"fs: {fs}")
+    print(f"nperseg: {nperseg}")
+    print(f"segment_duration: {segment_duration}")
+    print(f"noverlap: {noverlap}")
+    print("----")
     result = np.empty((0, nPad))
     for iter in range(seg):
         #seg_data = data[(nperseg - noverlap) * iter : (nperseg - noverlap) * iter + nperseg]
@@ -178,6 +188,7 @@ def spectrogram_analize(data_i, fs, nperseg, filename, sensor, start=0, end=-1):
 
     for ax in range(3):
         plt.figure(dpi=dpi, figsize=narrow_figsize)
+        print(np.shape(t), np.shape(f), np.shape(specs[ax]))
         plt.pcolormesh(t, f, specs[ax], cmap="jet", vmin=vmin, vmax=vmax)
         plt.ylabel("Frequency [Hz]")
         plt.xlabel("Time [sec]")

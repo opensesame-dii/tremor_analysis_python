@@ -6,6 +6,7 @@ from io import BytesIO
 # from shutil import rmtree
 import matplotlib.pyplot as plt
 from copy import deepcopy
+from sys import exit
 
 import tkinter as tk
 from tkinter import ttk
@@ -91,6 +92,9 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        # exit event
+        self.protocol("WM_DELETE_WINDOW", self.app_exit)
+
         #メインウィンドウの設定
         # root = tkinter.Tk()
         # root.title("tremor")
@@ -127,7 +131,7 @@ class MainApp(tk.Tk):
         data_label2.grid(row=1, column=0)
 
         self.brows_button2 = ttk.Button(data_input_frame,text="Brows", command=lambda: self.file_dialog(1))
-        # self.brows_button2.bind("<ButtonPress>",lambda: self.file_dialog("eeee"))
+        # self.brows_button2.bind("<ButtonPress>",self.file_dialog)
         self.brows_button2.grid(row=1, column=1)
 
         progress = ttk.Label(data_input_frame,text= "progress:")
@@ -194,23 +198,6 @@ class MainApp(tk.Tk):
         self.data_frames = [data1_frame,data2_frame]
 
         for data_ in self.data_frames:        
-            spa = ttk.Label(data_, text="Spectrogram Peak Amplitude:")
-            spa.grid(row=0, column=0)
-            spf = ttk.Label(data_, text="Spectrogram Peak Frequency(Hz): ")
-            spf.grid(row=1, column=0)
-            spt = ttk.Label(data_, text = "Spectrogram Peak Time(s): ")
-            spt.grid(row=2, column=0)
-            wpa = ttk.Label(data_, text = "Whole Peak Amplitude: ")
-            wpa.grid(row=3, column=0)
-            wpf = ttk.Label(data_, text = "Whole Peak Frequency(Hz): ")
-            wpf.grid(row=4, column=0)
-            fhm = ttk.Label(data_, text = "Full-width Half Maximum(Hz): ")
-            fhm.grid(row=5, column=0)
-            hp = ttk.Label(data_, text = "Half-width Power: ")
-            hp.grid(row=6, column=0)
-            tsi = ttk.Label(data_, text = "Tremor Stability Index: ")
-            tsi.grid(row=7, column=0)
-
             self.spa_txt = tk.Entry(data_,width=20)
             self.spa_txt.insert(tk.END,"None")
             self.spa_txt.grid(row=0, column=1)
@@ -235,6 +222,24 @@ class MainApp(tk.Tk):
             self.tsi_txt = tk.Entry(data_, width=20)
             self.tsi_txt.insert(tk.END,"None")
             self.tsi_txt.grid(row=7, column=1)
+
+            spa = ttk.Label(data_, text="Spectrogram Peak Amplitude:")
+            spa.grid(row=0, column=0)
+            spf = ttk.Label(data_, text="Spectrogram Peak Frequency(Hz): ")
+            spf.grid(row=1, column=0)
+            spt = ttk.Label(data_, text = "Spectrogram Peak Time(s): ")
+            spt.grid(row=2, column=0)
+            wpa = ttk.Label(data_, text = "Whole Peak Amplitude: ")
+            wpa.grid(row=3, column=0)
+            wpf = ttk.Label(data_, text = "Whole Peak Frequency(Hz): ")
+            wpf.grid(row=4, column=0)
+            fhm = ttk.Label(data_, text = "Full-width Half Maximum(Hz): ")
+            fhm.grid(row=5, column=0)
+            hp = ttk.Label(data_, text = "Half-width Power: ")
+            hp.grid(row=6, column=0)
+            tsi = ttk.Label(data_, text = "Tremor Stability Index: ")
+            tsi.grid(row=7, column=0)
+
 
 
         #coherence
@@ -368,7 +373,20 @@ class MainApp(tk.Tk):
         self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
         self.current_mode = 0
         self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
+
+        self.key_lst = [
+            "sp_peak_amplitude",
+            "sp_peak_frequency",
+            "sp_peak_time",
+            "sa_peak_amplitude",
+            "sa_peak_frequency",
+            "sa_fwhm",
+            "sa_hwp",
+            "sa_tsi",
+        ]
         
+        # empty[sensor][axis]
+        # axis -> x, y, z, norm
         empty = [[None, None, None, None], [None, None, None, None], [None, None, None, None]]
 
         self.results = {
@@ -381,7 +399,10 @@ class MainApp(tk.Tk):
 
                 "sp_peak_amplitude" : deepcopy(empty) , # on "Spectrogram" mode
                 "sp_peak_frequency" : deepcopy(empty) ,
-                "sp_peak_time"      : deepcopy(empty)
+                "sp_peak_time"      : deepcopy(empty) ,
+                
+                "sa_graph"          : deepcopy(empty) ,
+                "sp_graph"          : deepcopy(empty) ,
             },
             1: { # file 2
                 "sa_peak_amplitude" : deepcopy(empty) , # on "spectral amplitude" mode
@@ -392,15 +413,54 @@ class MainApp(tk.Tk):
 
                 "sp_peak_amplitude" : deepcopy(empty) , # on "Spectrogram" mode
                 "sp_peak_frequency" : deepcopy(empty) ,
-                "sp_peak_time"      : deepcopy(empty)
+                "sp_peak_time"      : deepcopy(empty) ,
+
+                "sa_graph"          : deepcopy(empty) ,
+                "sp_graph"          : deepcopy(empty) ,
             },
             -1: { # relational values between file1 and file 2
                 "coherence"         : deepcopy(empty) ,
             }
         }
+        # self.debug()
+    def app_exit(self):
+        plt.close('all')
+        self.destroy()
+        exit()
+    def debug(self):
+        data = 0
+        entry_names = self.data_frames[data].children.keys()
+        print(entry_names)
 
-    def gui_update(self, file_update=False, recalculation=False, change_target=False):
-        pass
+    def gui_update(self, file_update=None, recalculation=False, change_target=False):
+        if (recalculation):
+            if (self.data[0] is not None and self.data[1] is not None):
+                #coherence
+                pass
+            
+            target_data = []
+            if (file_update is None):
+                target_data.append(0)
+                target_data.append(1)
+            else:
+                target_data.append(file_update)
+            
+            for data_idx in target_data:
+                for sensor_idx in range(3):
+                    self.spectrogram_analize(
+                        data_idx, 
+                        sensor_idx, 
+                        self.data[data_idx][:, sensor_idx*3: sensor_idx*3 + 3].T, 
+                        self.sampling_rate, 
+                        self.sampling_rate * self.segment_duration_sec, 
+                        self.filenames[data_idx], 
+                        self.sensors[sensor_idx], 
+                        self.frame_range[0], 
+                        self.frame_range[1]
+                    )
+                    for axis_idx in range(4):
+                        pass
+        self.update_results()
 
     #ファイルを選ぶ関数
     def file_dialog(self, selected):
@@ -421,19 +481,28 @@ class MainApp(tk.Tk):
             for i in range(self.data[selected].shape[1]):
                 if (detect_data_warning(self.data[selected][:,i])):
                     print(f"WARNING: column {i} may go off the scale")
-
             # update
-            self.gui_update(file_update=True, recalculation=True, change_target=False)
-    
+            self.gui_update(file_update=selected, recalculation=True, change_target=False)
+
+    def update_results(self):
+
+        for data in range(2):
+            entry_names = list(self.data_frames[data].children.keys())
+            for key in range(len(self.key_lst)):
+                
+                # self.data_frames[data].children[key].text = str(self.results[data][self.key_lst[key]][self.current_mode][-1])
+                self.data_frames[data].children[entry_names[key]].delete(0, "end")
+                self.data_frames[data].children[entry_names[key]].insert(0, str(self.results[data][self.key_lst[key]][self.current_mode][3]))
+
     def change_settings(self, event):
-        self.sampling_rate = float(self.seg_txt.get())
-        self.segment_duration_sec = float(self.samp_txt.get())
-        self.frame_range[0] = float(self.range_txt1.get())
-        self.frame_range[1] = float(self.range_txt2.get())
+        self.sampling_rate = int(self.samp_txt.get()) 
+        self.segment_duration_sec = int(self.seg_txt.get())
+        self.frame_range[0] = int(self.range_txt1.get())
+        self.frame_range[1] = int(self.range_txt2.get())
 
     # https://daeudaeu.com/tkinter-validation/
     def can_enter_as_number(self, diff):
-        if (diff.encode('utf-8').isdigit() or diff == "-" or diff == "."):
+        if (diff.encode('utf-8').isdigit() or diff == "-"):
             # 妥当（半角数字である）の場合はTrueを返却
             return True
         # 妥当でない（半角数字でない）場合はFalseを返却
@@ -459,9 +528,14 @@ class MainApp(tk.Tk):
         t: ndarray
             time instants
         """
-
+        # print("----")
+        # print(f"fs: {fs}")
+        # print(f"nperseg: {nperseg}")
+        # print(f"segment_duration: {segment_duration}")
+        # print(f"noverlap: {noverlap}")
+        # print("----")
         x_length = len(x)
-        print("data length: {}".format(x_length))
+        # print("data length: {}".format(x_length))
 
         L = np.min((x_length, nperseg))
         nTimesSpectrogram = 500; 
@@ -470,19 +544,19 @@ class MainApp(tk.Tk):
             noverlap = int(np.max((1,noverlap)))
         #nFFTMinimam = 2 ** 12
         nPad = np.max([2 ** int(np.ceil(np.log2(L))), 2 ** 12])
-        print("nPad: {}".format(nPad))
-        #print("noverlap: ", noverlap)
+        # print("nPad: {}".format(nPad))
+        # print("noverlap: ", noverlap)
         # hamming window を使用
         window = hamming(nperseg)
         sum_window = np.sum(window)
-
+        
         # セグメントがいくつあるか
         seg = int(np.ceil((x_length - noverlap) / (nperseg - noverlap)))
         #print(seg)
         # データを nperseg, noverlap に合う長さになるようゼロ埋め
         data = np.append(x, np.zeros(int(nperseg * seg - noverlap * (seg - 1) - x_length)))
-        print("padded data length: {}".format(len(data)))  
-        
+        # print("padded data length: {}".format(len(data)))  
+
         result = np.empty((0, nPad))
         for iter in range(seg):
             #seg_data = data[(nperseg - noverlap) * iter : (nperseg - noverlap) * iter + nperseg]
@@ -517,7 +591,7 @@ class MainApp(tk.Tk):
         return result.T[0:int(nPad / fs * max_f), :] * 2 / sum_window, np.linspace(0, max_f, int(nPad / fs * max_f)), t
 
 
-    def spectrogram_analize(self, data_i, fs, nperseg, filename, sensor, start=0, end=-1):
+    def spectrogram_analize(self, data_idx, sensor_idx, data_i, fs, nperseg, filename, sensor, start=0, end=-1):
         """
         Params
         data: array(3, n)
@@ -548,13 +622,13 @@ class MainApp(tk.Tk):
 
         data = data_i[:, start: end + 1]
 
-        print("nperseg: {}".format(nperseg))
+        # print("nperseg: {}".format(nperseg))
 
 
         specs = []
         for i in range(3):
             # start = time.time()
-            spec, f, t = np.abs(self.stft(detrend(data[i]), fs, self.segment_duration_sec, int(nperseg)))
+            spec, f, t = np.abs(self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec))
             specs.append(spec)
             # elapsed_time = time.time() - start
             # print ("elapsed_time:\n{0}".format(elapsed_time))
@@ -565,7 +639,18 @@ class MainApp(tk.Tk):
         # add norm
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
 
-        for ax in range(3):
+        for i in range(3):
+            self.results[data_idx]["sa_graph"][sensor_idx][i], ax = plt.subplots(figsize=(2.5,2.5), dpi=100)
+            im = ax.pcolormesh(t, f, specs[i], cmap="jet", vmin=vmin, vmax=vmax)
+            ax.set_xlabel("Time [sec]")
+            ax.set_ylabel("Frequency [Hz]")
+
+            # axpos = axes.get_position()
+            # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
+            cbar = self.results[data_idx]["sa_graph"][sensor_idx][i].colorbar(im,ax=ax)
+            cbar.set_label("Amplitude")
+            # plt.show()
+            # input("aa")
             """
             plt.figure(dpi=dpi, figsize=narrow_figsize)
             plt.pcolormesh(t, f, specs[ax], cmap="jet", vmin=vmin, vmax=vmax)
@@ -610,9 +695,14 @@ class MainApp(tk.Tk):
 
         print("=" * 20)
 
+        self.results[data_idx]["sp_peak_amplitude"][sensor_idx][3] = peak_amp
+        self.results[data_idx]["sp_peak_frequency"][sensor_idx][3] = peak_freq
+        self.results[data_idx]["sp_peak_time"][sensor_idx][3] = peak_time
+
+
         return peak_amp, peak_freq, peak_time
 
-    def power_density_analize(self, data_i, fs, nperseg, filename, sensor, start=0, end=-1):
+    def power_density_analize(self, data_idx, sensor_idx, data_i, fs, nperseg, filename, sensor, start=0, end=-1):
         """
         Params
         data: array(3, n)
@@ -709,7 +799,7 @@ class MainApp(tk.Tk):
     def wavelet_analize(self):
         pass
 
-    def full_width_half_maximum(self, x, y):
+    def full_width_half_maximum(self, data_idx, sensor_idx, x, y):
         """
         calcurate Full-width Half Maximum and Half-witdh power
         
@@ -760,7 +850,7 @@ class MainApp(tk.Tk):
 
         return (lower, upper, lower_v, upper_v, hwp)
 
-    def tremor_stability_index(self, x, fs):
+    def tremor_stability_index(self, data_idx, sensor_idx, x, fs):
         """
         Tremor Stability Index
 
@@ -801,7 +891,7 @@ class MainApp(tk.Tk):
         q75, q25 = np.percentile(delta_freq, [75 ,25])
         return q75 - q25
 
-    def coherence(self, data1, data2, fs, start=0, end=-1):
+    def coherence(self, data_idx, sensor_idx, axis_idx, data1, data2, fs, start=0, end=-1):
         """
         now developing
         """
