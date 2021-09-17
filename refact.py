@@ -164,17 +164,21 @@ class MainApp(tk.Tk):
         frame_range = ttk.Label(settings_frame2, text="Frame range:")
         frame_range.grid(row=2, column=0)
 
-        self.seg_txt = tk.Entry(settings_frame2,width=20,)
+        # setup validation function
+        tcl_can_enter_as_number = self.register(self.can_enter_as_number)
+
+        self.seg_txt = tk.Entry(settings_frame2,width=20,validate="key", vcmd=(tcl_can_enter_as_number, "%S"))
         self.seg_txt.grid(row=0, column=1)
-        self.samp_txt = tk.Entry(settings_frame2, width=20)
+        self.samp_txt = tk.Entry(settings_frame2, width=20,validate="key", vcmd=(tcl_can_enter_as_number, "%S"))
         self.samp_txt.grid(row=1, column=1)
-        self.range_txt1 = tk.Entry(settings_frame2, width=20)
+        self.range_txt1 = tk.Entry(settings_frame2, width=20,validate="key", vcmd=(tcl_can_enter_as_number, "%S"))
         self.range_txt1.grid(row=2, column=1)
-        self.range_txt2 = tk.Entry(settings_frame2,width=20)
+        self.range_txt2 = tk.Entry(settings_frame2,width=20,validate="key", vcmd=(tcl_can_enter_as_number, "%S"))
         self.range_txt2.grid(row=2, column=3)
         self.range_to = ttk.Label(settings_frame2, text="to")
         self.range_to.grid(row=2, column=2)
         self.apply_button = ttk.Button(settings_frame2, text="Apply")
+        self.apply_button.bind("<ButtonPress>", self.change_settings)
         self.apply_button.grid(row=3, column=0)
 
         #result
@@ -279,10 +283,10 @@ class MainApp(tk.Tk):
         #canvas2.get_tk_widget().grid(row=4, column=1)
 
         can3 = tk.Canvas(img_frame,width=400, height=300)
-        xbar = tk.Scrollbar(img_frame,can3,orient=tk.HORIZONTAL)
-        xbar.grid(row=1, column=0,sticky=tk.W + tk.E )
-        xbar.config(command=can3.xview)
-        can3.config(xscrollcommand=xbar.set)
+        # xbar = tk.Scrollbar(img_frame,can3,orient=tk.HORIZONTAL)
+        # xbar.grid(row=1, column=0,sticky=tk.W + tk.E )
+        # xbar.config(command=can3.xview)
+        # can3.config(xscrollcommand=xbar.set)
         ybar = tk.Scrollbar(can3,orient=tk.HORIZONTAL)
         ybar.grid(row=0, column=1,sticky=tk.W + tk.E )
         ybar.config(command=can3.yview)
@@ -420,7 +424,20 @@ class MainApp(tk.Tk):
 
             # update
             self.gui_update(file_update=True, recalculation=True, change_target=False)
-            
+    
+    def change_settings(self, event):
+        self.sampling_rate = float(self.seg_txt.get())
+        self.segment_duration_sec = float(self.samp_txt.get())
+        self.frame_range[0] = float(self.range_txt1.get())
+        self.frame_range[1] = float(self.range_txt2.get())
+
+    # https://daeudaeu.com/tkinter-validation/
+    def can_enter_as_number(self, diff):
+        if (diff.encode('utf-8').isdigit() or diff == "-" or diff == "."):
+            # 妥当（半角数字である）の場合はTrueを返却
+            return True
+        # 妥当でない（半角数字でない）場合はFalseを返却
+        return False
 
     def stft(self, x, fs, nperseg, segment_duration, noverlap=None):
         """
@@ -831,9 +848,6 @@ class MainApp(tk.Tk):
         coh = np.sum(Cyx) * df
         print("coherence: ", coh)
         return coh
-
-    def update(self):
-        pass
 
 
 
