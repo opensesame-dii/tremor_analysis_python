@@ -74,7 +74,7 @@ def remove_ext(filename):
 
 def detect_data_warning(data):
     """
-    detect max or min adjoining      #変なデータをはじく警告
+    detect going off the scale      #変なデータをはじく警告
     """
     max_idx = np.where(data == data.max())[0]
     min_idx = np.where(data == data.min())[0]
@@ -116,8 +116,8 @@ class MainApp(tk.Tk):
             )
         data_label1.grid(row=0, column=0) 
 
-        self.brows_button1 = ttk.Button(data_input_frame,text="Brows")
-        self.brows_button1.bind("<ButtonPress>", self.file_dialog)
+        self.brows_button1 = ttk.Button(data_input_frame,text="Brows", command=lambda: self.file_dialog(0))
+        # self.brows_button1.bind("<ButtonPress>", self.file_dialog)
         self.brows_button1.grid(row=0, column=1)  
 
         self.clear_button = ttk.Button(data_input_frame,text="clear")
@@ -126,8 +126,8 @@ class MainApp(tk.Tk):
         data_label2 = ttk.Label(data_input_frame,text = "data2:")
         data_label2.grid(row=1, column=0)
 
-        self.brows_button2 = ttk.Button(data_input_frame,text="Brows")
-        self.brows_button2.bind("<ButtonPress>",self.file_dialog)
+        self.brows_button2 = ttk.Button(data_input_frame,text="Brows", command=lambda: self.file_dialog(1))
+        # self.brows_button2.bind("<ButtonPress>",lambda: self.file_dialog("eeee"))
         self.brows_button2.grid(row=1, column=1)
 
         progress = ttk.Label(data_input_frame,text= "progress:")
@@ -387,13 +387,32 @@ class MainApp(tk.Tk):
             }
         }
 
+    def gui_update(self, file_update=False, recalculation=False, change_target=False):
+        pass
+
     #ファイルを選ぶ関数
-    def file_dialog(self, event):
+    def file_dialog(self, selected):
         ftypes =[('EXCELファイル/CSVファイル', '*.xlsx'),
             ('EXCELファイル/CSVファイル', '*.xlsm'),
             ('EXCELファイル/CSVファイル', '*.csv')]
         fname = filedialog.askopenfilename(filetypes=ftypes)
-        print(fname)
+        print(f"loading {fname}")
+        # print(selected)
+        if (self.filenames[selected] != fname):
+            self.filenames[selected] = fname
+            # Optimize to motion sensor by Logical Product Inc
+            df = pd.read_csv(fname, header=None, skiprows=10, index_col=0, encoding="shift jis")
+            npdata = np.array(df.values.flatten())
+            self.data[selected] = np.reshape(npdata,(df.shape[0],df.shape[1]))
+
+            # warning to go off the scale
+            for i in range(self.data[selected].shape[1]):
+                if (detect_data_warning(self.data[selected][:,i])):
+                    print(f"WARNING: column {i} may go off the scale")
+
+            # update
+            self.gui_update(file_update=True, recalculation=True, change_target=False)
+            
 
     def stft(self, x, fs, nperseg, segment_duration, noverlap=None):
         """
