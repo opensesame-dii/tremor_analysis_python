@@ -153,7 +153,7 @@ class MainApp(tk.Tk):
         # self.brows_button1.bind("<ButtonPress>", self.file_dialog)
         self.browse_button1.grid(row=0, column=1)  
 
-        self.clear_button = ttk.Button(data_input_frame,text="clear")
+        self.clear_button = ttk.Button(data_input_frame,text="clear", command=lambda: self.reset())
         self.clear_button.grid(row=0, column=2)
 
         data_label2 = ttk.Label(data_input_frame,text = "data2:")
@@ -165,7 +165,10 @@ class MainApp(tk.Tk):
 
         progress = ttk.Label(data_input_frame,text= "progress:")
         progress.grid(row=1, column=2)
-        self.progress_bar = ttk.Label(data_input_frame,text= "--")
+
+        self.progress_bar_text = tk.StringVar()
+        self.progress_bar_text.set("--")
+        self.progress_bar = ttk.Label(data_input_frame, textvariable=self.progress_bar_text)
         self.progress_bar.grid(row=1, column=3)
         per = ttk.Label(data_input_frame,text = "%")
         per.grid(row=1, column=4)
@@ -598,6 +601,30 @@ class MainApp(tk.Tk):
         # 妥当でない（半角数字でない）場合はFalseを返却
         return False
 
+    #パーセント表示する関数
+    def change_progress(self,val):
+        self.progress_bar_text.set(val)
+
+    def reset(self):
+        for data in range(2):
+            entry_names = list(self.data_frames[data].children.keys())
+            for key in range(len(self.result_value_keys)):
+                
+                # self.data_frames[data].children[key].text = str(self.results[data][self.result_value_keys[key]][self.current_mode][-1])
+                self.data_frames[data].children[entry_names[key]].delete(0, "end")
+                self.data_frames[data].children[entry_names[key]].insert(0,"None")
+        for axis_idx in range(4):
+            self.coherence_txts[axis_idx].delete(0, "end")
+            self.coherence_txts[axis_idx].insert(0, "None")
+
+        self.seg_txt.delete(0, "end")
+        self.seg_txt.insert(0,self.sampling_rate)
+        self.samp_txt.delete(0, "end")
+        self.samp_txt.insert(0, self.segment_duration_sec)
+        self.range_txt1.delete(0, "end")
+        self.range_txt1.insert(0, self.frame_range[0])
+        self.range_txt2.delete(0, "end")
+        self.range_txt2.insert(0, self.frame_range[1])
 
     
         
