@@ -149,15 +149,9 @@ class MainApp(tk.Tk):
             )
         data_label1.grid(row=0, column=0) 
 
-<<<<<<< HEAD
-        self.browse_button1 = ttk.Button(data_input_frame,text="Browse")
-        self.browse_button1.bind("<ButtonPress>", self.file_dialog)
-        self.browse_button1.grid(row=0, column=1)  
-=======
-        self.brows_button1 = ttk.Button(data_input_frame,text="Brows", command=lambda: self.file_dialog(0))
+        self.browse_button1 = ttk.Button(data_input_frame,text="Browse", command=lambda: self.file_dialog(0))
         # self.brows_button1.bind("<ButtonPress>", self.file_dialog)
-        self.brows_button1.grid(row=0, column=1)  
->>>>>>> 145e42b65a42fc73291fa998233acad2a44e1384
+        self.browse_button1.grid(row=0, column=1)  
 
         self.clear_button = ttk.Button(data_input_frame,text="clear")
         self.clear_button.grid(row=0, column=2)
@@ -165,15 +159,9 @@ class MainApp(tk.Tk):
         data_label2 = ttk.Label(data_input_frame,text = "data2:")
         data_label2.grid(row=1, column=0)
 
-<<<<<<< HEAD
-        self.browse_button2 = ttk.Button(data_input_frame,text="Browse")
-        self.browse_button2.bind("<ButtonPress>",self.file_dialog)
-        self.browse_button2.grid(row=1, column=1)
-=======
-        self.brows_button2 = ttk.Button(data_input_frame,text="Brows", command=lambda: self.file_dialog(1))
+        self.browse_button2 = ttk.Button(data_input_frame,text="Browse", command=lambda: self.file_dialog(1))
         # self.brows_button2.bind("<ButtonPress>",self.file_dialog)
-        self.brows_button2.grid(row=1, column=1)
->>>>>>> 145e42b65a42fc73291fa998233acad2a44e1384
+        self.browse_button2.grid(row=1, column=1)
 
         progress = ttk.Label(data_input_frame,text= "progress:")
         progress.grid(row=1, column=2)
@@ -340,18 +328,7 @@ class MainApp(tk.Tk):
         #canvas2.get_tk_widget().grid(row=4, column=1)
 
         can3 = tk.Canvas(img_frame,width=400, height=300)
-<<<<<<< HEAD
    
-=======
-        # xbar = tk.Scrollbar(img_frame,can3,orient=tk.HORIZONTAL)
-        # xbar.grid(row=1, column=0,sticky=tk.W + tk.E )
-        # xbar.config(command=can3.xview)
-        # can3.config(xscrollcommand=xbar.set)
-        ybar = tk.Scrollbar(can3,orient=tk.HORIZONTAL)
-        ybar.grid(row=0, column=1,sticky=tk.W + tk.E )
-        ybar.config(command=can3.yview)
-        can3.config(yscrollcommand=ybar.set)
->>>>>>> 145e42b65a42fc73291fa998233acad2a44e1384
 
         can_x = ttk.Frame(can3)
         can_y = ttk.Frame(can3)
@@ -622,7 +599,7 @@ class MainApp(tk.Tk):
         return False
 
 
-    def change_progress(self,val):
+    
         
 
 
