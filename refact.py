@@ -595,7 +595,7 @@ class MainApp(tk.Tk):
 
     # https://daeudaeu.com/tkinter-validation/
     def can_enter_as_number(self, diff):
-        if (diff.encode('utf-8').isdigit() or diff == "-"):
+        if (diff == "-" or diff.encode('utf-8').isdigit() or str((int(diff)*-1)).encode('utf-8').isdigit()):
             # 妥当（半角数字である）の場合はTrueを返却
             return True
         # 妥当でない（半角数字でない）場合はFalseを返却
