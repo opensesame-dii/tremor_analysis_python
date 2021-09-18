@@ -306,8 +306,8 @@ class MainApp(tk.Tk):
         can_y = ttk.Frame(can3)
         can_z = ttk.Frame(can3)
 
-        can_list = [can_x,can_y,can_z]
-        for can_ in can_list:
+        self.can_list = [can_x,can_y,can_z]
+        for can_ in self.can_list:
             fig3 = Figure(figsize = (2.5,2.5),dpi = 100)
             ax = fig3.add_subplot(1,1,1)
             self.canvas_ = FigureCanvasTkAgg(fig3, can_)
@@ -378,8 +378,9 @@ class MainApp(tk.Tk):
         self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
         self.current_mode = 0
         self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
+        self.current_sensor = 0
 
-        self.key_lst = [
+        self.result_value_keys = [
             "sp_peak_amplitude",
             "sp_peak_frequency",
             "sp_peak_time",
@@ -389,7 +390,15 @@ class MainApp(tk.Tk):
             "sa_hwp",
             "sa_tsi",
         ]
+        self.result_graph_keys = [
+            "sa_graph",
+            "sp_graph",
+        ]
+
+        self.init_data()
         
+    def init_data(self):
+        plt.close()
         # empty[sensor][axis]
         # axis -> x, y, z, norm
         empty = [[None, None, None, None], [None, None, None, None], [None, None, None, None]]
@@ -427,10 +436,10 @@ class MainApp(tk.Tk):
                 "coherence"         : deepcopy(empty) ,
             }
         }
-        # self.debug()
+
     def app_exit(self):
         plt.close('all')
-        self.destroy()
+        #self.destroy()
         exit()
     def debug(self):
         data = 0
@@ -495,7 +504,20 @@ class MainApp(tk.Tk):
                     )
                     for axis_idx in range(4):
                         pass
+
+        # calculated value update
         self.update_results()
+
+        # graph update
+        for i in range(3):
+            # self.can_list[i] = FigureCanvasTkAgg(self.)
+            entry_names = list(self.can_list[i].children.keys())
+            for entry_name in entry_names:
+                self.can_list[i].children[entry_name].destroy()
+            canvas_ = FigureCanvasTkAgg(self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][i], self.can_list[i])
+            canvas_.draw()
+            canvas_.get_tk_widget().pack()
+            NavigationToolbar2Tk(canvas_, self.can_list[i])
 
     #ファイルを選ぶ関数
     def file_dialog(self, selected):
@@ -503,6 +525,11 @@ class MainApp(tk.Tk):
             ('EXCELファイル/CSVファイル', '*.xlsm'),
             ('EXCELファイル/CSVファイル', '*.csv')]
         fname = filedialog.askopenfilename(filetypes=ftypes)
+        
+        if (fname == "" or isinstance(fname, tuple)):
+            print("no file selected")
+            return
+        
         print(f"loading {fname}")
         # print(selected)
         if (self.filenames[selected] != fname):
@@ -523,14 +550,14 @@ class MainApp(tk.Tk):
 
         for data in range(2):
             entry_names = list(self.data_frames[data].children.keys())
-            for key in range(len(self.key_lst)):
+            for key in range(len(self.result_value_keys)):
                 
-                # self.data_frames[data].children[key].text = str(self.results[data][self.key_lst[key]][self.current_mode][-1])
+                # self.data_frames[data].children[key].text = str(self.results[data][self.result_value_keys[key]][self.current_mode][-1])
                 self.data_frames[data].children[entry_names[key]].delete(0, "end")
-                self.data_frames[data].children[entry_names[key]].insert(0, str(self.results[data][self.key_lst[key]][self.current_mode][3]))
+                self.data_frames[data].children[entry_names[key]].insert(0, str(self.results[data][self.result_value_keys[key]][self.current_sensor][3]))
         for axis_idx in range(4):
             self.coherence_txts[axis_idx].delete(0, "end")
-            self.coherence_txts[axis_idx].insert(0, str(self.results[-1]["coherence"][self.current_mode][axis_idx]))
+            self.coherence_txts[axis_idx].insert(0, str(self.results[-1]["coherence"][self.current_sensor][axis_idx]))
 
     def change_settings(self, event):
         self.sampling_rate = int(self.samp_txt.get()) 
