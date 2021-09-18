@@ -181,11 +181,17 @@ class MainApp(tk.Tk):
 
         #この書き方（moduleを使う）は良くない気がする、、、
         module = ("data_list","mode_list","analysis","sensor_list")
-        self.now_showing_box = ttk.Combobox(settings_frame, values=module[0], state="readonly")
+        self.now_showing_box = ttk.Combobox(settings_frame, values=["data1", "data2"], state="readonly")
+        self.now_showing_box.set("data1")
+        self.now_showing_box.bind("<<ComboboxSelected>>", self.onchange_showing)
         self.now_showing_box.grid(row=0, column=1)
-        self.analysis_box = ttk.Combobox(settings_frame, values=module[2], state="readonly")
+        self.analysis_box = ttk.Combobox(settings_frame, values=self.modes, state="readonly")
+        self.analysis_box.set(self.modes[0])
+        self.analysis_box.bind("<<ComboboxSelected>>", self.onchange_analysis)
         self.analysis_box.grid(row=1, column=1)
-        self.sensor_box = ttk.Combobox(settings_frame, values=module[3], state="readonly")
+        self.sensor_box = ttk.Combobox(settings_frame, values=self.sensors, state="readonly")
+        self.sensor_box.set(self.sensors[0])
+        self.sensor_box.bind("<<ComboboxSelected>>", self.onchange_sensor)
         self.sensor_box.grid(row=2, column=1)
 
         #settings
@@ -211,7 +217,7 @@ class MainApp(tk.Tk):
         self.range_to = ttk.Label(settings_frame2, text="to")
         self.range_to.grid(row=2, column=2)
         self.apply_button = ttk.Button(settings_frame2, text="Apply")
-        self.apply_button.bind("<ButtonPress>", self.change_settings)
+        self.apply_button.bind("<ButtonPress>", self.onchange_settings)
         self.apply_button.grid(row=3, column=0)
 
         #result
@@ -546,10 +552,11 @@ class MainApp(tk.Tk):
                 for axis_idx in range(3):
                     ax.plot(self.data[selected][:,i * 3 + axis_idx])
                 ax.legend(labels=["x", "y", "z"])
+            plt.close()
             self.gui_update(file_update=selected, recalculation=True, change_target=False)
-        plt.close()
-    def update_results(self):
+        print(f"{fname} was loaded successfully")
 
+    def update_results(self):
         for data in range(2):
             entry_names = list(self.data_frames[data].children.keys())
             for key in range(len(self.result_value_keys)):
@@ -561,11 +568,34 @@ class MainApp(tk.Tk):
             self.coherence_txts[axis_idx].delete(0, "end")
             self.coherence_txts[axis_idx].insert(0, str(self.results[-1]["coherence"][self.current_sensor][axis_idx]))
 
-    def change_settings(self, event):
+    def onchange_settings(self, event):
         self.sampling_rate = int(self.samp_txt.get()) 
         self.segment_duration_sec = int(self.seg_txt.get())
         self.frame_range[0] = int(self.range_txt1.get())
         self.frame_range[1] = int(self.range_txt2.get())
+
+    def onchange_showing(self, event):
+        idx = ["data1", "data2"].index(self.now_showing_box.get())
+        if (self.current_data == idx):
+            return
+        self.current_data = idx
+        self.gui_update(file_update=None, recalculation=False, change_target=True)
+
+    def onchange_analysis(self, event):
+        idx = self.modes.index(self.analysis_box.get())
+        if (self.current_mode == idx):
+            return
+        self.current_mode = idx      
+        self.gui_update(file_update=None, recalculation=False, change_target=True)
+
+
+    def onchange_sensor(self, event):
+        idx = self.sensors.index(self.sensor_box.get())
+        if (self.current_sensor == idx):
+            return
+        self.current_sensor = idx        
+        self.gui_update(file_update=None, recalculation=False, change_target=True)
+
 
     # https://daeudaeu.com/tkinter-validation/
     def can_enter_as_number(self, diff):
@@ -769,14 +799,11 @@ class MainApp(tk.Tk):
         peak_freq = f[peak_idx[0][0]]
         peak_time = t[peak_idx[1][0]]
 
-        print("=" * 20)
+        # print("recording(s): {}".format(recording))
+        # print("peak amplitude: {}  {}".format(peak_amp, peak_idx))
+        # print("peak frequency(Hz): {}".format(peak_freq))
+        # print("peaktime(s): {}".format(peak_time))
 
-        print("recording(s): {}".format(recording))
-        print("peak amplitude: {}  {}".format(peak_amp, peak_idx))
-        print("peak frequency(Hz): {}".format(peak_freq))
-        print("peaktime(s): {}".format(peak_time))
-
-        print("=" * 20)
 
         self.results[data_idx]["sp_peak_amplitude"][sensor_idx][3] = peak_amp
         self.results[data_idx]["sp_peak_frequency"][sensor_idx][3] = peak_freq
@@ -816,8 +843,8 @@ class MainApp(tk.Tk):
             return None, None, None
 
         data = data_i[:, start: end + 1]
-        print("nperseg: {}".format(nperseg))
-        print(data.shape)
+        # print("nperseg: {}".format(nperseg))
+        # print(data.shape)
 
         specs = []
         for i in range(3):
@@ -863,12 +890,11 @@ class MainApp(tk.Tk):
         """
         l, u, lv, uv, hwp = self.full_width_half_maximum(data_idx, sensor_idx, f, specs[3])
         fwhm = uv - lv
-        print(l, u, lv, uv)
-        print(specs[3, int(l)])
-        plt.fill_between(f[l:u], specs[3, l:u], color="r", alpha=0.5)
+        # print(l, u, lv, uv)
+        # print(specs[3, int(l)])
+        ax.fill_between(f[l:u], specs[3, l:u], color="r", alpha=0.5)
         #plt.show()
         #### plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "am.png")
-        plt.close()
         recording = len(data[0]) / fs
         f_offset = int(specs.shape[1] * 2 / 20)
         
@@ -877,16 +903,16 @@ class MainApp(tk.Tk):
         peak_freq = f[peak_idx[0][0]]
         tsi = self.tremor_stability_index(data_idx, sensor_idx, data[0], fs)
 
-        print("=" * 20)
 
-        print("recording(s): {}".format(recording))
-        print("peak amplitude: {}  {}".format(peak_amp, peak_idx))
-        print("peak frequency(Hz): {}".format(peak_freq))
-        print("Full-width Half Maximum(Hz): {}".format(fwhm))
-        print("Half-width power: {}".format(hwp))
-        print("Tremor Stability Index: {}".format(tsi))
 
-        print("=" * 20)
+        # print("recording(s): {}".format(recording))
+        # print("peak amplitude: {}  {}".format(peak_amp, peak_idx))
+        # print("peak frequency(Hz): {}".format(peak_freq))
+        # print("Full-width Half Maximum(Hz): {}".format(fwhm))
+        # print("Half-width power: {}".format(hwp))
+        # print("Tremor Stability Index: {}".format(tsi))
+
+
 
         self.results[data_idx]["sa_peak_amplitude"][sensor_idx][3] = peak_amp
         self.results[data_idx]["sa_peak_frequency"][sensor_idx][3] = peak_freq
@@ -923,7 +949,7 @@ class MainApp(tk.Tk):
         length = len(y_ndarray)
         peak_val_half = np.max(y_ndarray) / 2
         peak_idx = y_ndarray.argmax()
-        print(peak_idx)
+        # print(peak_idx)
         lower = peak_idx
         upper = peak_idx
 
@@ -1031,12 +1057,12 @@ class MainApp(tk.Tk):
 
         l = (len(x1) - noverlap) // (nfft - noverlap)
         z = 1 - np.power(0.05, 1 / (l - 1))
-        print("z: ", z)
-        print("significant points rate: ", len(Cyx[Cyx >= z]) / len(Cyx)) # 有意な値の割合
+        # print("z: ", z)
+        # print("significant points rate: ", len(Cyx[Cyx >= z]) / len(Cyx)) # 有意な値の割合
         Cyx = Cyx[Cyx >= z]
         # print(Cyx)
         coh = np.sum(Cyx) * df
-        print("coherence: ", coh)
+        # print("coherence: ", coh)
 
         self.results[-1]["coherence"][sensor_idx][axis_idx] = coh
         return coh
