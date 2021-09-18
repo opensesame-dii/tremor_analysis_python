@@ -101,14 +101,7 @@ class MainApp(tk.Tk):
         self.segment_duration_sec = 5
         self.frame_range = [0, -1]
 
-        self.filenames = ["", ""]
-        self.data = [None, None]
-        self.current_data = 0 # showing data index (0 or 1)
-
-        self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
-        self.current_mode = 0
-        self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
-        self.current_sensor = 0
+        
 
         self.result_value_keys = [
             "sp_peak_amplitude",
@@ -311,15 +304,15 @@ class MainApp(tk.Tk):
         #data previewのグラフ
 
 
-        can = ttk.Frame(img_frame)
+        self.can_preview = ttk.Frame(img_frame)
         fig = Figure(figsize = self.figsize_large, dpi = 100)
         ax = fig.add_subplot(1,1,1)
         #line, =  ax.plot(x,y)
-        self.canvas = FigureCanvasTkAgg(fig,can)
+        self.canvas = FigureCanvasTkAgg(fig,self.can_preview)
         self.canvas.draw()
         #canvas.get_tk_widget().grid(row=0, rowspan=4,column=1+1,sticky=tkinter.E)
         self.canvas.get_tk_widget().pack()
-        toolbar1 = NavigationToolbar2Tk(self.canvas, can)
+        toolbar1 = NavigationToolbar2Tk(self.canvas, self.can_preview)
 
         self.can2 = ttk.Frame(img_frame)
         self.canvas2 = FigureCanvasTkAgg(fig, self.can2)
@@ -362,7 +355,7 @@ class MainApp(tk.Tk):
         data1_frame.grid(row=1, column=0,sticky=tk.W,pady=10)
         data2_frame.grid(row=2, column=0,sticky=tk.W, pady=10)
         coherence_frame.grid(row=3,column=0, sticky=tk.W,pady=10)
-        can.grid(row=0, column=0)
+        self.can_preview.grid(row=0, column=0)
         self.can2.grid(row=1, column=0)
         can3.grid(row=2, column=0)
         can_x.grid(row=0, column=0)
@@ -376,6 +369,17 @@ class MainApp(tk.Tk):
         
     def init_data(self):
         plt.close()
+
+        self.filenames = ["", ""]
+        self.data = [None, None]
+        self.current_data = 0 # showing data index (0 or 1)
+        self.data_preview_fig = [[None for i in range(self.SENSORS_NUM)], [None for i in range(self.SENSORS_NUM)]]
+
+        self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
+        self.current_mode = 0
+        self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
+        self.current_sensor = 0
+
         # empty[sensor][axis]
         # axis -> x, y, z, norm
         empty = [[None, None, None, None], [None, None, None, None], [None, None, None, None]]
@@ -481,15 +485,20 @@ class MainApp(tk.Tk):
                     )
                     for axis_idx in range(4):
                         pass
+            change_target = True
 
-        # calculated value update
-        self.update_results()
+        if (change_target):
+            # preview update
+            self.update_figure(self.can_preview, self.data_preview_fig[self.current_data][self.current_sensor])
 
-        # graph update
-        for i in range(3):
-            # self.can_list[i] = FigureCanvasTkAgg(self.)
-            self.update_figure(self.can_list[i], self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][i])
-        self.update_figure(self.can2, self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][3])
+            # calculated value update
+            self.update_results()
+
+            # graph update
+            for i in range(3):
+                # self.can_list[i] = FigureCanvasTkAgg(self.)
+                self.update_figure(self.can_list[i], self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][i])
+            self.update_figure(self.can2, self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][3])
 
     def update_figure(self, figure_canvas, fig):
         """
@@ -506,7 +515,7 @@ class MainApp(tk.Tk):
         canvas_.draw()
         canvas_.get_tk_widget().pack()
         FigureNavigator(canvas_, figure_canvas)
-        
+
     #ファイルを選ぶ関数
     def file_dialog(self, selected):
         ftypes =[('EXCELファイル/CSVファイル', '*.xlsx'),
@@ -532,8 +541,13 @@ class MainApp(tk.Tk):
                 if (detect_data_warning(self.data[selected][:,i])):
                     print(f"WARNING: column {i} may go off the scale")
             # update
+            for i in range(self.SENSORS_NUM):
+                self.data_preview_fig[selected][i], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
+                for axis_idx in range(3):
+                    ax.plot(self.data[selected][:,i * 3 + axis_idx])
+                ax.legend(labels=["x", "y", "z"])
             self.gui_update(file_update=selected, recalculation=True, change_target=False)
-
+        plt.close()
     def update_results(self):
 
         for data in range(2):
@@ -768,7 +782,7 @@ class MainApp(tk.Tk):
         self.results[data_idx]["sp_peak_frequency"][sensor_idx][3] = peak_freq
         self.results[data_idx]["sp_peak_time"][sensor_idx][3] = peak_time
 
-
+        plt.close()
         return peak_amp, peak_freq, peak_time
 
     def power_density_analize(self, data_idx, sensor_idx, data_i, fs, nperseg, filename, sensor, start=0, end=-1):
@@ -879,7 +893,7 @@ class MainApp(tk.Tk):
         self.results[data_idx]["sa_fwhm"][sensor_idx][3] = fwhm
         self.results[data_idx]["sa_hwp"][sensor_idx][3] = hwp
         self.results[data_idx]["sa_tsi"][sensor_idx][3] = tsi
-
+        plt.close()
         return peak_amp, peak_freq, fwhm, hwp, tsi
 
     def wavelet_analize(self):
