@@ -321,11 +321,11 @@ class MainApp(tk.Tk):
         self.canvas.get_tk_widget().pack()
         toolbar1 = NavigationToolbar2Tk(self.canvas, can)
 
-        can2 = ttk.Frame(img_frame)
-        self.canvas2 = FigureCanvasTkAgg(fig, can2)
+        self.can2 = ttk.Frame(img_frame)
+        self.canvas2 = FigureCanvasTkAgg(fig, self.can2)
         self.canvas2.draw()
         self.canvas2.get_tk_widget().pack()
-        toolbar2 = NavigationToolbar2Tk(self.canvas2, can2)
+        toolbar2 = NavigationToolbar2Tk(self.canvas2, self.can2)
         #canvas2.get_tk_widget().grid(row=4, column=1)
 
         can3 = tk.Canvas(img_frame,width=400, height=300)
@@ -363,7 +363,7 @@ class MainApp(tk.Tk):
         data2_frame.grid(row=2, column=0,sticky=tk.W, pady=10)
         coherence_frame.grid(row=3,column=0, sticky=tk.W,pady=10)
         can.grid(row=0, column=0)
-        can2.grid(row=1, column=0)
+        self.can2.grid(row=1, column=0)
         can3.grid(row=2, column=0)
         can_x.grid(row=0, column=0)
         can_y.grid(row=0, column=1)
@@ -488,14 +488,25 @@ class MainApp(tk.Tk):
         # graph update
         for i in range(3):
             # self.can_list[i] = FigureCanvasTkAgg(self.)
-            entry_names = list(self.can_list[i].children.keys())
-            for entry_name in entry_names:
-                self.can_list[i].children[entry_name].destroy()
-            canvas_ = FigureCanvasTkAgg(self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][i], self.can_list[i])
-            canvas_.draw()
-            canvas_.get_tk_widget().pack()
-            FigureNavigator(canvas_, self.can_list[i])
+            self.update_figure(self.can_list[i], self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][i])
+        self.update_figure(self.can2, self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][3])
 
+    def update_figure(self, figure_canvas, fig):
+        """
+        Params:
+        figure_canvas: ttk.Frame
+            target canvas
+        fig: matplotlib.figure.Figure
+            figure
+        """
+        entry_names = list(figure_canvas.children.keys())   
+        for entry_name in entry_names:
+            figure_canvas.children[entry_name].destroy()
+        canvas_ = FigureCanvasTkAgg(fig, figure_canvas)
+        canvas_.draw()
+        canvas_.get_tk_widget().pack()
+        FigureNavigator(canvas_, figure_canvas)
+        
     #ファイルを選ぶ関数
     def file_dialog(self, selected):
         ftypes =[('EXCELファイル/CSVファイル', '*.xlsx'),
