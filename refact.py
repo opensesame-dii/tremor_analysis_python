@@ -19,6 +19,7 @@ from scipy.signal import hamming, detrend
 from matplotlib.mlab import cohere, window_hanning
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib import backend_tools as cbook
 # import PySimpleGUI as sg
 import pandas as pd
 
@@ -92,6 +93,40 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        # number of sensor
+        # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
+        self.SENSORS_NUM = 3
+
+        self.sampling_rate = 200
+        self.segment_duration_sec = 5
+        self.frame_range = [0, -1]
+
+        self.filenames = ["", ""]
+        self.data = [None, None]
+        self.current_data = 0 # showing data index (0 or 1)
+
+        self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
+        self.current_mode = 0
+        self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
+        self.current_sensor = 0
+
+        self.result_value_keys = [
+            "sp_peak_amplitude",
+            "sp_peak_frequency",
+            "sp_peak_time",
+            "sa_peak_amplitude",
+            "sa_peak_frequency",
+            "sa_fwhm",
+            "sa_hwp",
+            "sa_tsi",
+        ]
+        self.result_graph_keys = [
+            "sa_graph",
+            "sp_graph",
+        ]
+
+        self.init_data()
+
         # exit event
         self.protocol("WM_DELETE_WINDOW", self.app_exit)
 
@@ -106,7 +141,8 @@ class MainApp(tk.Tk):
             self.attributes("-zoomed", "1")
         self.configure(bg="#778899")
 
-     
+        self.figsize_small = (3.3, 2.5)
+        self.figsize_large = (9.9, 3)
 
         #情報フレームとグラフフレームの作成
         info_frame = tk.Frame(self, bg="#778899")
@@ -276,7 +312,7 @@ class MainApp(tk.Tk):
 
 
         can = ttk.Frame(img_frame)
-        fig = Figure(figsize = (10,3),dpi = 100)
+        fig = Figure(figsize = self.figsize_large, dpi = 100)
         ax = fig.add_subplot(1,1,1)
         #line, =  ax.plot(x,y)
         self.canvas = FigureCanvasTkAgg(fig,can)
@@ -308,12 +344,12 @@ class MainApp(tk.Tk):
 
         self.can_list = [can_x,can_y,can_z]
         for can_ in self.can_list:
-            fig3 = Figure(figsize = (2.5,2.5),dpi = 100)
+            fig3 = Figure(figsize = self.figsize_small, dpi = 100)
             ax = fig3.add_subplot(1,1,1)
             self.canvas_ = FigureCanvasTkAgg(fig3, can_)
             self.canvas_.draw()
             self.canvas_.get_tk_widget().pack()
-            self.toolbar3 = NavigationToolbar2Tk(self.canvas_, can_)
+            self.toolbar3 = FigureNavigator(self.canvas_, can_)
 
 
         #フレームの配置
@@ -336,66 +372,7 @@ class MainApp(tk.Tk):
         # root.mainloop()
 
 
-        # number of sensor
-        # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
-        self.SENSORS_NUM = 3
-
-        """
-        # this directory stores figure png files
-        self.DATA_DIR = path.join(path.dirname(path.abspath(__file__)), ".data")
-
-        # regenerate data directory when program launched
-        try:
-            rmtree(self.DATA_DIR)
-        except FileNotFoundError:
-            pass
-        makedirs(self.DATA_DIR)
-        # figure size settings
-        self.dpi = 97
-        self.figsize_big = (12, 3)
-        self.figsize_small = (4, 3)
-        self.figsize_pixel_big = (self.figsize_big[0] * self.dpi, self.figsize_big[1] * self.dpi)
-        self.figsize_pixel_small = (self.figsize_small[0] * self.dpi, self.figsize_small[1] * self.dpi)
-
-        # generate blank figure for initialize
-        # いらないかも
-        plt.figure(dpi=self.dpi, figsize=self.figsize_big)
-        plt.savefig(self.DATA_DIR + "/init.png")
-        plt.close()
-        plt.figure(dpi=self.dpi, figsize=self.figsize_small)
-        plt.savefig(self.DATA_DIR + "/init_s.png")
-        plt.close()
-        """
-
-        self.sampling_rate = 200
-        self.segment_duration_sec = 5
-        self.frame_range = [0, -1]
-
-        self.filenames = ["", ""]
-        self.data = [None, None]
-        self.current_data = 0 # showing data index (0 or 1)
-
-        self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
-        self.current_mode = 0
-        self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
-        self.current_sensor = 0
-
-        self.result_value_keys = [
-            "sp_peak_amplitude",
-            "sp_peak_frequency",
-            "sp_peak_time",
-            "sa_peak_amplitude",
-            "sa_peak_frequency",
-            "sa_fwhm",
-            "sa_hwp",
-            "sa_tsi",
-        ]
-        self.result_graph_keys = [
-            "sa_graph",
-            "sp_graph",
-        ]
-
-        self.init_data()
+        
         
     def init_data(self):
         plt.close()
@@ -517,7 +494,7 @@ class MainApp(tk.Tk):
             canvas_ = FigureCanvasTkAgg(self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][i], self.can_list[i])
             canvas_.draw()
             canvas_.get_tk_widget().pack()
-            NavigationToolbar2Tk(canvas_, self.can_list[i])
+            FigureNavigator(canvas_, self.can_list[i])
 
     #ファイルを選ぶ関数
     def file_dialog(self, selected):
@@ -712,7 +689,7 @@ class MainApp(tk.Tk):
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
 
         for i in range(3):
-            self.results[data_idx]["sa_graph"][sensor_idx][i], ax = plt.subplots(figsize=(2.5,2.5), dpi=100)
+            self.results[data_idx]["sa_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
             im = ax.pcolormesh(t, f, specs[i], cmap="jet", vmin=vmin, vmax=vmax)
             ax.set_xlabel("Time [sec]")
             ax.set_ylabel("Frequency [Hz]")
@@ -737,7 +714,7 @@ class MainApp(tk.Tk):
             plt.close()
             #print("saved: ", data_dir + "/" + remove_ext(filename) + str(ax) + sensor + "sp.png")
             """
-        self.results[data_idx]["sa_graph"][sensor_idx][3], ax = plt.subplots(figsize=(10,3), dpi=100)
+        self.results[data_idx]["sa_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         im = ax.pcolormesh(t, f, specs[3], cmap="jet", vmin=vmin, vmax=vmax)
         ax.set_xlabel("Time [sec]")
         ax.set_ylabel("Frequency [Hz]")
@@ -835,7 +812,7 @@ class MainApp(tk.Tk):
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
 
         for i in range(3):
-            self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=(2.5,2.5), dpi=100)
+            self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
             ax.set_ylim(0, vmax * 1.2)
             ax.plot(f, specs[i])
             ax.set_xlabel("Frequency [Hz]")
@@ -849,7 +826,7 @@ class MainApp(tk.Tk):
             plt.close()
             """
         
-        self.results[data_idx]["sp_graph"][sensor_idx][3], ax = plt.subplots(figsize=(10,3), dpi=100)
+        self.results[data_idx]["sp_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         ax.set_ylim(0, vmax * 1.2)
         ax.plot(f, specs[3])
         ax.set_xlabel("Frequency [Hz]")
@@ -1039,8 +1016,37 @@ class MainApp(tk.Tk):
         self.results[-1]["coherence"][sensor_idx][axis_idx] = coh
         return coh
 
+class FigureNavigator(NavigationToolbar2Tk):
+    # override to stop displaying mouse coordinate
+    def mouse_move(self, event):
+        self._set_cursor(event)
 
+        # if event.inaxes and event.inaxes.get_navigate():
+        if False:
 
+            try:
+                s = event.inaxes.format_coord(event.xdata, event.ydata)
+            except (ValueError, OverflowError):
+                pass
+            else:
+                artists = [a for a in event.inaxes._mouseover_set
+                           if a.contains(event)[0] and a.get_visible()]
+
+                if artists:
+                    a = cbook._topmost_artist(artists)
+                    if a is not event.inaxes.patch:
+                        data = a.get_cursor_data(event)
+                        if data is not None:
+                            data_str = a.format_cursor_data(data)
+                            if data_str is not None:
+                                s = s + ' ' + data_str
+
+                if len(self.mode):
+                    self.set_message('%s, %s' % (self.mode, s))
+                else:
+                    self.set_message(s)
+        else:
+            self.set_message(self.mode)
 if __name__ == "__main__":
     app = MainApp()
     app.mainloop()
