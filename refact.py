@@ -227,7 +227,7 @@ class MainApp(tk.Tk):
         #result
         result_frame = ttk.Frame(info_frame, relief="groove")
 
-        self.clip = ttk.Button(result_frame, text="copy to clipboard")
+        self.clip = ttk.Button(result_frame, text="copy to clipboard", command=self.copy_to_clipboard)
         self.clip.grid(row=0, column=0,sticky=tk.W)
 
         #data出力のフレーム
@@ -629,6 +629,19 @@ class MainApp(tk.Tk):
         """
 
         self.progress_bar_text.set(val)
+
+    def copy_to_clipboard(self):
+        self.clipboard_clear()
+        txt = ""
+        for i in range(2):
+            for key in self.result_value_keys:
+                txt += str(self.results[i][key][self.current_sensor][3])
+                txt += "\n"
+        for i in range(4):
+            txt += str(self.results[-1]["coherence"][self.current_sensor][i])
+            txt += "\n"
+        self.clipboard_append(txt)
+        print("copied to clipboard")
 
     def reset(self, is_init=False):
         if (not is_init):
