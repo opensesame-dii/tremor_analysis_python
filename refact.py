@@ -434,6 +434,7 @@ class MainApp(tk.Tk):
         print(entry_names)
 
     def gui_update(self, file_update=None, settings_changed=False, recalculation=False, change_target=False):
+        self.change_progress("00")
         if (recalculation):
             if (self.data[0] is not None and self.data[1] is not None):
                 for sensor_idx in range(self.SENSORS_NUM):
@@ -468,37 +469,37 @@ class MainApp(tk.Tk):
                         target_data.append(i)
             else:
                 target_data.append(file_update)
-            
-            for data_idx in target_data:
+            for data_idx in range(len(target_data)):
                 for sensor_idx in range(self.SENSORS_NUM):
+                    progress = (data_idx * self.SENSORS_NUM + sensor_idx) * 100 // (self.SENSORS_NUM * len(target_data))
+                    self.change_progress(str(progress))
                     self.spectrogram_analize(
-                        data_idx, 
+                        target_data[data_idx], 
                         sensor_idx, 
-                        self.data[data_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
+                        self.data[target_data[data_idx]][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
                         self.sampling_rate, 
                         self.sampling_rate * self.segment_duration_sec, 
-                        self.filenames[data_idx], 
+                        self.filenames[target_data[data_idx]], 
                         self.sensors[sensor_idx], 
                         self.frame_range[0], 
                         self.frame_range[1],
                     )
                     self.power_density_analize(
-                        data_idx, 
+                        target_data[data_idx], 
                         sensor_idx, 
-                        self.data[data_idx][:, sensor_idx*3: sensor_idx*3 + 3].T, 
+                        self.data[target_data[data_idx]][:, sensor_idx*3: sensor_idx*3 + 3].T, 
                         self.sampling_rate, 
                         self.sampling_rate * self.segment_duration_sec, 
-                        self.filenames[data_idx], 
+                        self.filenames[target_data[data_idx]], 
                         self.sensors[sensor_idx], 
                         self.frame_range[0], 
                         self.frame_range[1],
                     )
-                    for axis_idx in range(4):
-                        pass
             change_target = True
 
         if (change_target):
             self.update_all_figure()
+        self.change_progress("--")
 
     def update_all_figure(self):
         # preview update
@@ -616,6 +617,12 @@ class MainApp(tk.Tk):
 
     #パーセント表示する関数
     def change_progress(self,val):
+        """
+        Params
+        val: str
+            progress value
+        """
+
         self.progress_bar_text.set(val)
 
     def reset(self, is_init=False):
