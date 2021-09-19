@@ -849,7 +849,7 @@ class MainApp(tk.Tk):
 
         # axpos = axes.get_position()
         # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
-        cbar = self.results[data_idx]["sa_graph"][sensor_idx][i].colorbar(im,ax=ax)
+        cbar = self.results[data_idx]["sa_graph"][sensor_idx][3].colorbar(im,ax=ax)
         cbar.set_label("Amplitude")
         """
         plt.figure(dpi=dpi, figsize=wide_figsize)
