@@ -240,6 +240,7 @@ class MainApp(tk.Tk):
             self.spa_txt = tk.Entry(data_,width=20)
             self.spa_txt.insert(tk.END,"None")
             self.spa_txt.grid(row=0, column=1)
+            self.spa_txt.configure(state="readonly")
             self.spf_txt = tk.Entry(data_, width=20)
             self.spf_txt.insert(tk.END,"None")
             self.spf_txt.grid(row=1, column=1)
@@ -571,11 +572,15 @@ class MainApp(tk.Tk):
             for key in range(len(self.result_value_keys)):
                 
                 # self.data_frames[data].children[key].text = str(self.results[data][self.result_value_keys[key]][self.current_mode][-1])
+                self.data_frames[data].children[entry_names[key]].configure(state = "normal")
                 self.data_frames[data].children[entry_names[key]].delete(0, "end")
                 self.data_frames[data].children[entry_names[key]].insert(0, str(self.results[data][self.result_value_keys[key]][self.current_sensor][3]))
+                self.data_frames[data].children[entry_names[key]].configure(state = "readonly")
         for axis_idx in range(4):
+            self.coherence_txts[axis_idx].configure(state = "normal")
             self.coherence_txts[axis_idx].delete(0, "end")
             self.coherence_txts[axis_idx].insert(0, str(self.results[-1]["coherence"][self.current_sensor][axis_idx]))
+            self.coherence_txts[axis_idx].configure(state = "readonly")
 
     def onchange_settings(self, event):
         self.segment_duration_sec = int(self.seg_txt.get())
