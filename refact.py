@@ -118,6 +118,9 @@ class MainApp(tk.Tk):
             "sp_graph",
         ]
 
+        self.figsize_small = (3.3, 2.5)
+        self.figsize_large = (9.9, 3)
+
         self.init_data()
 
         # exit event
@@ -134,8 +137,6 @@ class MainApp(tk.Tk):
             self.attributes("-zoomed", "1")
         self.configure(bg="#778899")
 
-        self.figsize_small = (3.3, 2.5)
-        self.figsize_large = (9.9, 3)
 
         #情報フレームとグラフフレームの作成
         info_frame = tk.Frame(self, bg="#778899")
@@ -366,16 +367,18 @@ class MainApp(tk.Tk):
 
         # root.mainloop()
 
-
+        self.reset(is_init=True)
         
         
     def init_data(self):
-        plt.close()
+        plt.close("all")
+        empty_fig_small, ax = plt.subplots(figsize=self.figsize_small, dpi=100)
+        empty_fig_large, ax = plt.subplots(figsize=self.figsize_large, dpi=100)
 
         self.filenames = ["", ""]
         self.data = [None, None]
         self.current_data = 0 # showing data index (0 or 1)
-        self.data_preview_fig = [[None for i in range(self.SENSORS_NUM)], [None for i in range(self.SENSORS_NUM)]]
+        self.data_preview_fig = [[empty_fig_large for i in range(self.SENSORS_NUM)], [empty_fig_large for i in range(self.SENSORS_NUM)]]
 
         self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
         self.current_mode = 0
@@ -384,7 +387,7 @@ class MainApp(tk.Tk):
 
         # empty[sensor][axis]
         # axis -> x, y, z, norm
-        empty = [[None, None, None, None], [None, None, None, None], [None, None, None, None]]
+        empty = [[None, None, None, None] for i in range(self.SENSORS_NUM)]
 
         self.results = {
             0: { # file 1
@@ -398,8 +401,8 @@ class MainApp(tk.Tk):
                 "sp_peak_frequency" : deepcopy(empty) ,
                 "sp_peak_time"      : deepcopy(empty) ,
                 
-                "sa_graph"          : deepcopy(empty) ,
-                "sp_graph"          : deepcopy(empty) ,
+                "sa_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
+                "sp_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
             },
             1: { # file 2
                 "sa_peak_amplitude" : deepcopy(empty) , # on "spectral amplitude" mode
@@ -412,13 +415,14 @@ class MainApp(tk.Tk):
                 "sp_peak_frequency" : deepcopy(empty) ,
                 "sp_peak_time"      : deepcopy(empty) ,
 
-                "sa_graph"          : deepcopy(empty) ,
-                "sp_graph"          : deepcopy(empty) ,
+                "sa_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
+                "sp_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
             },
             -1: { # relational values between file1 and file 2
                 "coherence"         : deepcopy(empty) ,
             }
         }
+        plt.close("all")
 
     def app_exit(self):
         plt.close('all')
@@ -490,17 +494,20 @@ class MainApp(tk.Tk):
             change_target = True
 
         if (change_target):
-            # preview update
-            self.update_figure(self.can_preview, self.data_preview_fig[self.current_data][self.current_sensor])
+            self.update_all_figure()
 
-            # calculated value update
-            self.update_results()
+    def update_all_figure(self):
+        # preview update
+        self.update_figure(self.can_preview, self.data_preview_fig[self.current_data][self.current_sensor])
 
-            # graph update
-            for i in range(3):
-                # self.can_list[i] = FigureCanvasTkAgg(self.)
-                self.update_figure(self.can_list[i], self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][i])
-            self.update_figure(self.can2, self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][3])
+        # calculated value update
+        self.update_results()
+
+        # graph update
+        for i in range(3):
+            # self.can_list[i] = FigureCanvasTkAgg(self.)
+            self.update_figure(self.can_list[i], self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][i])
+        self.update_figure(self.can2, self.results[self.current_data][self.result_graph_keys[self.current_mode]][self.current_sensor][3])
 
     def update_figure(self, figure_canvas, fig):
         """
@@ -532,6 +539,7 @@ class MainApp(tk.Tk):
         print(f"loading {fname}")
         # print(selected)
         if (self.filenames[selected] != fname):
+            plt.close("all")
             self.filenames[selected] = fname
             # Optimize to motion sensor by Logical Product Inc
             df = pd.read_csv(fname, header=None, skiprows=10, index_col=0, encoding="shift jis")
@@ -548,7 +556,7 @@ class MainApp(tk.Tk):
                 for axis_idx in range(3):
                     ax.plot(self.data[selected][:,i * 3 + axis_idx])
                 ax.legend(labels=["x", "y", "z"])
-            plt.close()
+            plt.close("all")
             self.gui_update(file_update=selected, recalculation=True, change_target=False)
         print(f"{fname} was loaded successfully")
 
@@ -605,7 +613,12 @@ class MainApp(tk.Tk):
     def change_progress(self,val):
         self.progress_bar_text.set(val)
 
-    def reset(self):
+    def reset(self, is_init=False):
+        if (not is_init):
+            self.init_data()
+        self.update_results()
+        self.update_all_figure()
+        """
         for data in range(2):
             entry_names = list(self.data_frames[data].children.keys())
             for key in range(len(self.result_value_keys)):
@@ -616,6 +629,7 @@ class MainApp(tk.Tk):
         for axis_idx in range(4):
             self.coherence_txts[axis_idx].delete(0, "end")
             self.coherence_txts[axis_idx].insert(0, "None")
+        """
 
         self.seg_txt.delete(0, "end")
         self.seg_txt.insert(0,self.sampling_rate)
@@ -834,7 +848,7 @@ class MainApp(tk.Tk):
         self.results[data_idx]["sp_peak_frequency"][sensor_idx][3] = peak_freq
         self.results[data_idx]["sp_peak_time"][sensor_idx][3] = peak_time
 
-        plt.close()
+        plt.close("all")
         return peak_amp, peak_freq, peak_time
 
     def power_density_analize(self, data_idx, sensor_idx, data_i, fs, nperseg, filename, sensor, start=0, end=-1):
@@ -887,7 +901,6 @@ class MainApp(tk.Tk):
         
         # add norm
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
-
         for i in range(3):
             self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
             ax.set_ylim(0, vmax * 1.2)
@@ -944,7 +957,7 @@ class MainApp(tk.Tk):
         self.results[data_idx]["sa_fwhm"][sensor_idx][3] = fwhm
         self.results[data_idx]["sa_hwp"][sensor_idx][3] = hwp
         self.results[data_idx]["sa_tsi"][sensor_idx][3] = tsi
-        plt.close()
+        plt.close("all")
         return peak_amp, peak_freq, fwhm, hwp, tsi
 
     def wavelet_analize(self):
@@ -1030,14 +1043,14 @@ class MainApp(tk.Tk):
         interval = np.diff(zero_crossing)
         tremor_freq = fs / interval # convert to frequency
         delta_freq = np.diff(tremor_freq)
-
+        """
         plt.boxplot(delta_freq, showmeans=True, vert=False
         #, whis="range"
         )
         plt.xlabel("delta-f")
         plt.close()
         #plt.show()
-
+        """
         # 四分位範囲
         q75, q25 = np.percentile(delta_freq, [75 ,25])
         return q75 - q25
@@ -1073,13 +1086,14 @@ class MainApp(tk.Tk):
         f = f[idx[0] : idx[1]]
         df = f[1] - f[0]
         Cyx = Cyx[idx[0] : idx[1]]
+        """
         plt.ylim(0, 1)
         plt.xlim(xlim_l, xlim_r)
         plt.xlabel("Frequency[Hz]")
         plt.plot(f, Cyx)
         #plt.show()
         plt.close()
-
+        """
         l = (len(x1) - noverlap) // (nfft - noverlap)
         z = 1 - np.power(0.05, 1 / (l - 1))
         # print("z: ", z)
