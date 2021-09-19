@@ -433,7 +433,7 @@ class MainApp(tk.Tk):
         entry_names = self.data_frames[data].children.keys()
         print(entry_names)
 
-    def gui_update(self, file_update=None, recalculation=False, change_target=False):
+    def gui_update(self, file_update=None, settings_changed=False, recalculation=False, change_target=False):
         if (recalculation):
             if (self.data[0] is not None and self.data[1] is not None):
                 for sensor_idx in range(self.SENSORS_NUM):
@@ -459,9 +459,13 @@ class MainApp(tk.Tk):
                 pass
             
             target_data = []
-            if (file_update is None):
+            if (file_update is None and not settings_changed):
                 target_data.append(0)
                 target_data.append(1)
+            elif (settings_changed):
+                for i in range(2):
+                    if (self.data[i] is not None):
+                        target_data.append(i)
             else:
                 target_data.append(file_update)
             
@@ -557,7 +561,7 @@ class MainApp(tk.Tk):
                     ax.plot(self.data[selected][:,i * 3 + axis_idx])
                 ax.legend(labels=["x", "y", "z"])
             plt.close("all")
-            self.gui_update(file_update=selected, recalculation=True, change_target=False)
+            self.gui_update(file_update=selected, settings_changed=False, recalculation=True, change_target=False)
         print(f"{fname} was loaded successfully")
 
     def update_results(self):
@@ -573,24 +577,25 @@ class MainApp(tk.Tk):
             self.coherence_txts[axis_idx].insert(0, str(self.results[-1]["coherence"][self.current_sensor][axis_idx]))
 
     def onchange_settings(self, event):
-        self.sampling_rate = int(self.samp_txt.get()) 
         self.segment_duration_sec = int(self.seg_txt.get())
+        self.sampling_rate = int(self.samp_txt.get()) 
         self.frame_range[0] = int(self.range_txt1.get())
         self.frame_range[1] = int(self.range_txt2.get())
+        self.gui_update(file_update=None, settings_changed=True, recalculation=True, change_target=False)
 
     def onchange_showing(self, event):
         idx = ["data1", "data2"].index(self.now_showing_box.get())
         if (self.current_data == idx):
             return
         self.current_data = idx
-        self.gui_update(file_update=None, recalculation=False, change_target=True)
+        self.gui_update(file_update=None, settings_changed=False, recalculation=False, change_target=True)
 
     def onchange_analysis(self, event):
         idx = self.modes.index(self.analysis_box.get())
         if (self.current_mode == idx):
             return
         self.current_mode = idx      
-        self.gui_update(file_update=None, recalculation=False, change_target=True)
+        self.gui_update(file_update=None, settings_changed=False, recalculation=False, change_target=True)
 
 
     def onchange_sensor(self, event):
@@ -598,7 +603,7 @@ class MainApp(tk.Tk):
         if (self.current_sensor == idx):
             return
         self.current_sensor = idx        
-        self.gui_update(file_update=None, recalculation=False, change_target=True)
+        self.gui_update(file_update=None, settings_changed=False, recalculation=False, change_target=True)
 
 
     # https://daeudaeu.com/tkinter-validation/
@@ -632,9 +637,9 @@ class MainApp(tk.Tk):
         """
 
         self.seg_txt.delete(0, "end")
-        self.seg_txt.insert(0,self.sampling_rate)
+        self.seg_txt.insert(0,self.segment_duration_sec)
         self.samp_txt.delete(0, "end")
-        self.samp_txt.insert(0, self.segment_duration_sec)
+        self.samp_txt.insert(0, self.sampling_rate)
         self.range_txt1.delete(0, "end")
         self.range_txt1.insert(0, self.frame_range[0])
         self.range_txt2.delete(0, "end")
@@ -727,11 +732,15 @@ class MainApp(tk.Tk):
         # 20Hzまでを出力
         max_f = 20
         # print(len(data) / fs - segment_duration / 2)
+        sliced_result = result.T[0:int(nPad / fs * max_f), :] * 2 / sum_window
         if (x_length - len(data)) < 0:
             t = np.linspace(segment_duration / 2, len(data) / fs - segment_duration / 2, result.shape[0] + (len(data) - x_length))[0:x_length - len(data)]
         else:
             t = np.linspace(segment_duration / 2, len(data) / fs - segment_duration / 2, result.shape[0] + (len(data) - x_length))
-        return result.T[0:int(nPad / fs * max_f), :] * 2 / sum_window, np.linspace(0, max_f, int(nPad / fs * max_f)), t
+        
+        f = np.linspace(0, max_f, np.shape(sliced_result)[0])
+
+        return sliced_result, f, t
 
 
     def spectrogram_analize(self, data_idx, sensor_idx, data_i, fs, nperseg, filename, sensor, start=0, end=-1):
@@ -781,16 +790,16 @@ class MainApp(tk.Tk):
         vmax = np.max(specs)
         # add norm
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
-
+        
         for i in range(3):
-            self.results[data_idx]["sa_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
+            self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
             im = ax.pcolormesh(t, f, specs[i], cmap="jet", vmin=vmin, vmax=vmax)
             ax.set_xlabel("Time [sec]")
             ax.set_ylabel("Frequency [Hz]")
 
             # axpos = axes.get_position()
             # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
-            cbar = self.results[data_idx]["sa_graph"][sensor_idx][i].colorbar(im,ax=ax)
+            cbar = self.results[data_idx]["sp_graph"][sensor_idx][i].colorbar(im,ax=ax)
             cbar.set_label("Amplitude")
             # plt.show()
             # input("aa")
@@ -902,7 +911,7 @@ class MainApp(tk.Tk):
         # add norm
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
         for i in range(3):
-            self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
+            self.results[data_idx]["sa_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
             ax.set_ylim(0, vmax * 1.2)
             ax.plot(f, specs[i])
             ax.set_xlabel("Frequency [Hz]")
@@ -916,7 +925,7 @@ class MainApp(tk.Tk):
             plt.close()
             """
         
-        self.results[data_idx]["sp_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
+        self.results[data_idx]["sa_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         ax.set_ylim(0, vmax * 1.2)
         ax.plot(f, specs[3])
         ax.set_xlabel("Frequency [Hz]")
