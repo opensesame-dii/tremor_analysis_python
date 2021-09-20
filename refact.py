@@ -842,7 +842,7 @@ class MainApp(tk.Tk):
             plt.close()
             #print("saved: ", data_dir + "/" + remove_ext(filename) + str(ax) + sensor + "sp.png")
             """
-        self.results[data_idx]["sa_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
+        self.results[data_idx]["sp_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         im = ax.pcolormesh(t, f, specs[3], cmap="jet", vmin=vmin, vmax=vmax)
         ax.set_xlabel("Time [sec]")
         ax.set_ylabel("Frequency [Hz]")
