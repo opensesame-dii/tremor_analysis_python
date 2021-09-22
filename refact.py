@@ -140,7 +140,7 @@ class MainApp(tk.Tk):
 
         #情報フレームとグラフフレームの作成
         info_frame = tk.Frame(self, bg="#778899")
-        img_frame = tk.Frame(self, bg="#778899")
+        img_frame = tk.Canvas(self, bg="#778899")
 
         #データを選択するフレーム
         data_input_frame = ttk.Frame(info_frame,relief="groove",borderwidth=5)
@@ -317,13 +317,11 @@ class MainApp(tk.Tk):
 
         self.can_preview = ttk.Frame(img_frame)
         fig = Figure(figsize = self.figsize_large, dpi = 100)
-        ax = fig.add_subplot(1,1,1)
-        #line, =  ax.plot(x,y)
         self.canvas = FigureCanvasTkAgg(fig,self.can_preview)
         self.canvas.draw()
-        #canvas.get_tk_widget().grid(row=0, rowspan=4,column=1+1,sticky=tkinter.E)
         self.canvas.get_tk_widget().pack()
         toolbar1 = NavigationToolbar2Tk(self.canvas, self.can_preview)
+        
 
         self.can2 = ttk.Frame(img_frame)
         self.canvas2 = FigureCanvasTkAgg(fig, self.can2)
@@ -348,6 +346,15 @@ class MainApp(tk.Tk):
             self.canvas_.get_tk_widget().pack()
             self.toolbar3 = FigureNavigator(self.canvas_, can_)
 
+        """
+        #スクロールバー
+        hbar = tk.Scrollbar(img_frame, orient=tk.HORIZONTAL)
+        hbar.config(command=img_frame.xview)
+        hbar.grid(row=3,column=0)
+        vbar = tk.Scrollbar(img_frame, orient=tk.VERTICAL)
+        vbar.config(command=img_frame.yview)
+        vbar.grid(row=0,column=1)
+        """
 
         #フレームの配置
         info_frame.grid(row=0, column=0)
