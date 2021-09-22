@@ -561,7 +561,9 @@ class MainApp(tk.Tk):
                 self.data_preview_fig[selected][i], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
                 for axis_idx in range(3):
                     ax.plot(self.data[selected][:,i * 3 + axis_idx])
-                ax.legend(labels=["x", "y", "z"])
+                    ax.set_title("Date preview")
+                    ax.set_xlabel("sample")
+                ax.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
             plt.close("all")
             self.gui_update(file_update=selected, settings_changed=False, recalculation=True, change_target=False)
         print(f"{fname} was loaded successfully")
@@ -821,7 +823,8 @@ class MainApp(tk.Tk):
             im = ax.pcolormesh(t, f, specs[i], cmap="jet", vmin=vmin, vmax=vmax)
             ax.set_xlabel("Time [sec]")
             ax.set_ylabel("Frequency [Hz]")
-
+            titles = ["x","y","z"]
+            ax.set_title(titles[i])
             # axpos = axes.get_position()
             # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
             cbar = self.results[data_idx]["sp_graph"][sensor_idx][i].colorbar(im,ax=ax)
@@ -844,6 +847,7 @@ class MainApp(tk.Tk):
             """
         self.results[data_idx]["sp_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         im = ax.pcolormesh(t, f, specs[3], cmap="jet", vmin=vmin, vmax=vmax)
+        ax.set_title("Norm")
         ax.set_xlabel("Time [sec]")
         ax.set_ylabel("Frequency [Hz]")
 
@@ -941,6 +945,8 @@ class MainApp(tk.Tk):
             ax.plot(f, specs[i])
             ax.set_xlabel("Frequency [Hz]")
             ax.set_ylabel("Amplitude")
+            titles = ["x","y","z"]
+            ax.set_title(titles[i])
             """
             plt.figure(dpi=dpi, figsize=narrow_figsize)
             plt.ylim(0, vmax * 1.2)
@@ -953,6 +959,7 @@ class MainApp(tk.Tk):
         self.results[data_idx]["sa_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         ax.set_ylim(0, vmax * 1.2)
         ax.plot(f, specs[3])
+        ax.set_title("Norm")
         ax.set_xlabel("Frequency [Hz]")
         ax.set_ylabel("Amplitude")
         """
