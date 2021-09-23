@@ -49,7 +49,7 @@
 
 
 [o]spectrogramのnormが表示されない
-[S]wavelet 変換
+[o]wavelet 変換
 [S&M]ネイティブ化(pyinstaller?) (1日試してダメなら諦める)
 [S]今のcoherenceは, coherenceを有意水準以上のものを積分した値であることの注意
   supplymental って形?

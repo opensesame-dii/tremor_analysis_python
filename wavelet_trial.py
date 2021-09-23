@@ -17,7 +17,8 @@ t, dt = np.linspace(0, len(sig) // fs, len(sig), retstep=True)
 #t, dt = np.linspace(0, 1, 200, retstep=True)
 fs = 1/dt
 w = 6.
-#sig = np.cos(2*np.pi*(50 + 10*t)*t) + np.sin(40*np.pi*t)
+# sig = np.cos(2*np.pi*(50 + 10*t)*t) + np.sin(40*np.pi*t)
+sig = np.cos(2*np.pi*(50 + 10*t)) + np.sin(40*np.pi*t)
 freq = np.linspace(0, fs/2/5, 100 + 1)[1:] # /5 : 20Hzまでを取り出すため
 widths = w*fs / (2*freq*np.pi)
 

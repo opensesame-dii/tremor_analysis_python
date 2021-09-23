@@ -15,7 +15,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 # from PIL import Image, ImageTk
 import numpy as np
-from scipy.signal import hamming, detrend
+from scipy.signal import hamming, detrend, morlet2, cwt
 from matplotlib.mlab import cohere, window_hanning
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -87,10 +87,14 @@ class MainApp(tk.Tk):
             "sa_fwhm",
             "sa_hwp",
             "sa_tsi",
+            "wt_peak_amplitude",
+            "wt_peak_frequency",
+            "wt_peak_time",
         ]
         self.result_graph_keys = [
             "sa_graph",
             "sp_graph",
+            "wavelet",
         ]
 
         self.figsize_small = (3.3, 2.5)
@@ -215,7 +219,7 @@ class MainApp(tk.Tk):
             self.spa_txt = tk.Entry(data_,width=20)
             self.spa_txt.insert(tk.END,"None")
             self.spa_txt.grid(row=0, column=1)
-            self.spa_txt.configure(state="readonly")
+            #self.spa_txt.configure(state="readonly")
             self.spf_txt = tk.Entry(data_, width=20)
             self.spf_txt.insert(tk.END,"None")
             self.spf_txt.grid(row=1, column=1)
@@ -238,6 +242,17 @@ class MainApp(tk.Tk):
             self.tsi_txt.insert(tk.END,"None")
             self.tsi_txt.grid(row=7, column=1)
 
+            self.wta_txt = tk.Entry(data_,width=20)
+            self.wta_txt.insert(tk.END,"None")
+            self.wta_txt.grid(row=8, column=1)
+            #self.spa_txt.configure(state="readonly")
+            self.wtf_txt = tk.Entry(data_, width=20)
+            self.wtf_txt.insert(tk.END,"None")
+            self.wtf_txt.grid(row=9, column=1)
+            self.wtt_txt = tk.Entry(data_,width=20)
+            self.wtt_txt.insert(tk.END,"None")
+            self.wtt_txt.grid(row=10, column=1)
+
             spa = ttk.Label(data_, text="Spectrogram Peak Amplitude:")
             spa.grid(row=0, column=0)
             spf = ttk.Label(data_, text="Spectrogram Peak Frequency(Hz): ")
@@ -255,17 +270,24 @@ class MainApp(tk.Tk):
             tsi = ttk.Label(data_, text = "Tremor Stability Index: ")
             tsi.grid(row=7, column=0)
 
+            wta = ttk.Label(data_, text="Wavevlet Spectrogram Peak Amplitude:")
+            wta.grid(row=8, column=0)
+            wtf = ttk.Label(data_, text="Wavevlet Spectrogram Peak Frequency(Hz): ")
+            wtf.grid(row=9, column=0)
+            wtt = ttk.Label(data_, text = "Wavevlet Spectrogram Peak Time(s): ")
+            wtt.grid(row=10, column=0)
+
 
 
         #coherence
         coherence_frame = ttk.Frame(result_frame, relief="groove")
-        coh_x = ttk.Label(coherence_frame, text="FT coherenceintegral(x ):")
+        coh_x = ttk.Label(coherence_frame, text="FT coherence integral(x ):")
         coh_x.grid(row=0, column=0)
-        coh_y = ttk.Label(coherence_frame, text="FT coherenceintegral(y ):")
+        coh_y = ttk.Label(coherence_frame, text="FT coherence integral(y ):")
         coh_y.grid(row=1, column=0)
-        coh_z = ttk.Label(coherence_frame, text="FT coherenceintegral(z ):")
+        coh_z = ttk.Label(coherence_frame, text="FT coherence integral(z ):")
         coh_z.grid(row=2, column=0)
-        coh_norm = ttk.Label(coherence_frame, text="FT coherenceintegral(norm): ")
+        coh_norm = ttk.Label(coherence_frame, text="FT coherence integral(norm): ")
         coh_norm.grid(row=3, column=0)
 
         self.coherence_txts = []
@@ -363,7 +385,7 @@ class MainApp(tk.Tk):
         self.current_data = 0 # showing data index (0 or 1)
         self.data_preview_fig = [[empty_fig_large for i in range(self.SENSORS_NUM)], [empty_fig_large for i in range(self.SENSORS_NUM)]]
 
-        self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
+        self.modes = ["Spectral Amplitude", "Spectrogram", "wavelet"] # あとで修正(wavelet)
         self.current_mode = 0
         self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
         self.current_sensor = 0
@@ -374,37 +396,52 @@ class MainApp(tk.Tk):
 
         self.results = {
             0: { # file 1
-                "sa_peak_amplitude" : deepcopy(empty) , # on "spectral amplitude" mode
-                "sa_peak_frequency" : deepcopy(empty) ,
-                "sa_fwhm"           : deepcopy(empty) ,
-                "sa_hwp"            : deepcopy(empty) ,
-                "sa_tsi"            : deepcopy(empty) ,
+                # "sa_peak_amplitude" : deepcopy(empty) , # on "spectral amplitude" mode
+                # "sa_peak_frequency" : deepcopy(empty) ,
+                # "sa_fwhm"           : deepcopy(empty) ,
+                # "sa_hwp"            : deepcopy(empty) ,
+                # "sa_tsi"            : deepcopy(empty) ,
 
-                "sp_peak_amplitude" : deepcopy(empty) , # on "Spectrogram" mode
-                "sp_peak_frequency" : deepcopy(empty) ,
-                "sp_peak_time"      : deepcopy(empty) ,
+                # "sp_peak_amplitude" : deepcopy(empty) , # on "Spectrogram" mode
+                # "sp_peak_frequency" : deepcopy(empty) ,
+                # "sp_peak_time"      : deepcopy(empty) ,
                 
-                "sa_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
-                "sp_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
+                # "wt_peak_amplitude" : deepcopy(empty) , # on "Wavelet Spectrogram" mode
+                # "wt_peak_frequency" : deepcopy(empty) ,
+                # "wt_peak_time"      : deepcopy(empty) ,
+                
+                # "sa_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
+                # "sp_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
             },
             1: { # file 2
-                "sa_peak_amplitude" : deepcopy(empty) , # on "spectral amplitude" mode
-                "sa_peak_frequency" : deepcopy(empty) ,
-                "sa_fwhm"           : deepcopy(empty) ,
-                "sa_hwp"            : deepcopy(empty) ,
-                "sa_tsi"            : deepcopy(empty) ,
+                # "sa_peak_amplitude" : deepcopy(empty) , # on "spectral amplitude" mode
+                # "sa_peak_frequency" : deepcopy(empty) ,
+                # "sa_fwhm"           : deepcopy(empty) ,
+                # "sa_hwp"            : deepcopy(empty) ,
+                # "sa_tsi"            : deepcopy(empty) ,
 
-                "sp_peak_amplitude" : deepcopy(empty) , # on "Spectrogram" mode
-                "sp_peak_frequency" : deepcopy(empty) ,
-                "sp_peak_time"      : deepcopy(empty) ,
+                # "sp_peak_amplitude" : deepcopy(empty) , # on "Spectrogram" mode
+                # "sp_peak_frequency" : deepcopy(empty) ,
+                # "sp_peak_time"      : deepcopy(empty) ,
 
-                "sa_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
-                "sp_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
+                # "wt_peak_amplitude" : deepcopy(empty) , # on "Wavelet Spectrogram" mode
+                # "wt_peak_frequency" : deepcopy(empty) ,
+                # "wt_peak_time"      : deepcopy(empty) ,
+
+                # "sa_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
+                # "sp_graph"          : [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)] ,
             },
             -1: { # relational values between file1 and file 2
                 "coherence"         : deepcopy(empty) ,
             }
         }
+        for i in range(2):
+            for key in self.result_value_keys:
+                self.results[i][key] = deepcopy(empty)
+            for key in self.result_graph_keys:
+                self.results[i][key] = [[empty_fig_small, empty_fig_small, empty_fig_small, empty_fig_large] for i in range(self.SENSORS_NUM)]
+
+
         plt.close("all")
 
     def app_exit(self):
@@ -478,6 +515,17 @@ class MainApp(tk.Tk):
                         self.frame_range[0], 
                         self.frame_range[1],
                     )
+                    self.wavelet_analize(
+                        target_data[data_idx], 
+                        sensor_idx, 
+                        self.data[target_data[data_idx]][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
+                        self.sampling_rate, 
+                        self.sampling_rate * self.segment_duration_sec, 
+                        self.filenames[target_data[data_idx]], 
+                        self.sensors[sensor_idx], 
+                        self.frame_range[0], 
+                        self.frame_range[1],
+                    )
             change_target = True
 
         if (change_target):
@@ -525,6 +573,7 @@ class MainApp(tk.Tk):
             return
         
         print(f"loading {fname}")
+        self.change_progress("00")
         # print(selected)
         if (self.filenames[selected] != fname):
             plt.close("all")
@@ -939,8 +988,6 @@ class MainApp(tk.Tk):
         plt.close("all")
         return peak_amp, peak_freq, fwhm, hwp, tsi
 
-    def wavelet_analize(self):
-        pass
 
     def full_width_half_maximum(self, data_idx, sensor_idx, x, y):
         """
@@ -1070,6 +1117,108 @@ class MainApp(tk.Tk):
 
         self.results[-1]["coherence"][sensor_idx][axis_idx] = coh
         return coh
+
+    def wavelet_analize(self, data_idx, sensor_idx, data_i, fs, nperseg, filename, sensor, start=0, end=-1):
+        """
+        Params
+        data: array(3, n)
+            x, y, z data
+        fs: int/float
+            sampling rate
+        nperseg: int
+            sample number per stft segment
+        filename: str
+            filename
+        sensor: str
+            sensor name
+        start: integer
+            analysis start frame
+        end: integer
+            analysis end frame
+            -1 means end of input data
+        """
+        if (not len(data_i[0]) == len(data_i[1]) == len(data_i[2])):
+            print("invalid input data")
+            return None, None, None
+        if (end == -1):
+            end = len(data_i[0]) - 1
+        elif (start > end):
+            print("invalid range setting")
+            # sg.Popup("invalid range setting")
+            return None, None, None
+
+        data = data_i[:, start: end + 1]
+
+        # print("nperseg: {}".format(nperseg))
+
+        t, dt = np.linspace(0, len(data[0]) // fs, len(data[0]), retstep=True)
+        fs = 1/dt
+        w = 6. # morlet parameter: being 6 to satisfy the admissibility condition (Farge 1992)
+        max_freq = 20
+        steps = 100
+        freq = np.linspace(0, max_freq, steps + 1)[1:] # avoid zero division
+        widths = w*fs / (2*freq*np.pi)
+
+        specs = []
+        for i in range(3):
+            cwtm = cwt(np.abs(data[i]), morlet2, widths, w=w)
+            specs.append(cwtm)
+
+        # convert to 3-dimensional ndarray
+        specs = np.array(specs) #specs.shape: (3, 640, 527)
+        vmin = np.min(np.abs(specs))
+        vmax = np.max(np.abs(specs))
+        # add norm
+        specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
+        
+        titles = ["x","y","z"]
+        for i in range(3):
+            self.results[data_idx]["wavelet"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
+            self.results[data_idx]["wavelet"][sensor_idx][i].subplots_adjust(left=0.2)
+            im = ax.pcolormesh(t, freq, np.abs(specs[i]), cmap="jet", vmin=vmin, vmax=vmax)
+            ax.set_xlabel("Time [sec]")
+            ax.set_ylabel("Frequency [Hz]")
+            ax.set_title(titles[i])
+            # axpos = axes.get_position()
+            # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
+            #cbar = self.results[data_idx]["sp_graph"][sensor_idx][i].colorbar(im,ax=ax)
+            #cbar.set_label("Amplitude")
+            # plt.show()
+            # input("aa")
+
+        self.results[data_idx]["wavelet"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
+        im = ax.pcolormesh(t, freq, np.abs(specs[3]), cmap="jet", vmin=vmin, vmax=vmax)
+        ax.set_title("Norm")
+        ax.set_xlabel("Time [sec]")
+        ax.set_ylabel("Frequency [Hz]")
+
+        # axpos = axes.get_position()
+        # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
+        cbar = self.results[data_idx]["wavelet"][sensor_idx][3].colorbar(im,ax=ax)
+        cbar.set_label("Amplitude")
+
+
+        f_offset = int(specs.shape[1] * 2 / 20)
+
+        # print("s t {} {}".format(t[0], t[-1]))
+        peak_amp = np.max(np.abs(specs[3, f_offset:, :]))
+        peak_idx = np.where(np.abs(specs[3]) == peak_amp)
+        peak_freq = freq[peak_idx[0][0]]
+        peak_time = t[peak_idx[1][0]]
+
+        # print("recording(s): {}".format(recording))
+        # print("peak amplitude: {}  {}".format(peak_amp, peak_idx))
+        # print("peak frequency(Hz): {}".format(peak_freq))
+        # print("peaktime(s): {}".format(peak_time))
+
+
+        self.results[data_idx]["wt_peak_amplitude"][sensor_idx][3] = peak_amp
+        self.results[data_idx]["wt_peak_frequency"][sensor_idx][3] = peak_freq
+        self.results[data_idx]["wt_peak_time"][sensor_idx][3] = peak_time
+
+        # print(f"wavelet result\npeak amp: {peak_amp}\npeak freq: {peak_freq}\npeak time: {peak_time}")
+        plt.close("all")
+        return peak_amp, peak_freq, peak_time
 
 class FigureNavigator(NavigationToolbar2Tk):
     # override to stop displaying mouse coordinate
