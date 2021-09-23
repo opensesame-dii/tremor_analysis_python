@@ -140,7 +140,7 @@ class MainApp(tk.Tk):
 
         #情報フレームとグラフフレームの作成
         info_frame = tk.Frame(self, bg="#778899")
-        img_frame = tk.Frame(self, bg="#778899")
+        img_frame = tk.Canvas(self, bg="#778899")
 
         #データを選択するフレーム
         data_input_frame = ttk.Frame(info_frame,relief="groove",borderwidth=5)
@@ -317,13 +317,11 @@ class MainApp(tk.Tk):
 
         self.can_preview = ttk.Frame(img_frame)
         fig = Figure(figsize = self.figsize_large, dpi = 100)
-        ax = fig.add_subplot(1,1,1)
-        #line, =  ax.plot(x,y)
         self.canvas = FigureCanvasTkAgg(fig,self.can_preview)
         self.canvas.draw()
-        #canvas.get_tk_widget().grid(row=0, rowspan=4,column=1+1,sticky=tkinter.E)
         self.canvas.get_tk_widget().pack()
         toolbar1 = NavigationToolbar2Tk(self.canvas, self.can_preview)
+        
 
         self.can2 = ttk.Frame(img_frame)
         self.canvas2 = FigureCanvasTkAgg(fig, self.can2)
@@ -348,6 +346,15 @@ class MainApp(tk.Tk):
             self.canvas_.get_tk_widget().pack()
             self.toolbar3 = FigureNavigator(self.canvas_, can_)
 
+        """
+        #スクロールバー
+        hbar = tk.Scrollbar(img_frame, orient=tk.HORIZONTAL)
+        hbar.config(command=img_frame.xview)
+        hbar.grid(row=3,column=0)
+        vbar = tk.Scrollbar(img_frame, orient=tk.VERTICAL)
+        vbar.config(command=img_frame.yview)
+        vbar.grid(row=0,column=1)
+        """
 
         #フレームの配置
         info_frame.grid(row=0, column=0)
@@ -561,7 +568,9 @@ class MainApp(tk.Tk):
                 self.data_preview_fig[selected][i], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
                 for axis_idx in range(3):
                     ax.plot(self.data[selected][:,i * 3 + axis_idx])
-                ax.legend(labels=["x", "y", "z"])
+                    ax.set_title("Date preview")
+                    ax.set_xlabel("sample")
+                ax.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
             plt.close("all")
             self.gui_update(file_update=selected, settings_changed=False, recalculation=True, change_target=False)
         print(f"{fname} was loaded successfully")
@@ -821,7 +830,8 @@ class MainApp(tk.Tk):
             im = ax.pcolormesh(t, f, specs[i], cmap="jet", vmin=vmin, vmax=vmax)
             ax.set_xlabel("Time [sec]")
             ax.set_ylabel("Frequency [Hz]")
-
+            titles = ["x","y","z"]
+            ax.set_title(titles[i])
             # axpos = axes.get_position()
             # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
             cbar = self.results[data_idx]["sp_graph"][sensor_idx][i].colorbar(im,ax=ax)
@@ -844,6 +854,7 @@ class MainApp(tk.Tk):
             """
         self.results[data_idx]["sp_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         im = ax.pcolormesh(t, f, specs[3], cmap="jet", vmin=vmin, vmax=vmax)
+        ax.set_title("Norm")
         ax.set_xlabel("Time [sec]")
         ax.set_ylabel("Frequency [Hz]")
 
@@ -941,6 +952,8 @@ class MainApp(tk.Tk):
             ax.plot(f, specs[i])
             ax.set_xlabel("Frequency [Hz]")
             ax.set_ylabel("Amplitude")
+            titles = ["x","y","z"]
+            ax.set_title(titles[i])
             """
             plt.figure(dpi=dpi, figsize=narrow_figsize)
             plt.ylim(0, vmax * 1.2)
@@ -953,6 +966,7 @@ class MainApp(tk.Tk):
         self.results[data_idx]["sa_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         ax.set_ylim(0, vmax * 1.2)
         ax.plot(f, specs[3])
+        ax.set_title("Norm")
         ax.set_xlabel("Frequency [Hz]")
         ax.set_ylabel("Amplitude")
         """
