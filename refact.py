@@ -259,13 +259,13 @@ class MainApp(tk.Tk):
 
         #coherence
         coherence_frame = ttk.Frame(result_frame, relief="groove")
-        coh_x = ttk.Label(coherence_frame, text="coherence(x ):")
+        coh_x = ttk.Label(coherence_frame, text="FT coherenceintegral(x ):")
         coh_x.grid(row=0, column=0)
-        coh_y = ttk.Label(coherence_frame, text="coherence(y ):")
+        coh_y = ttk.Label(coherence_frame, text="FT coherenceintegral(y ):")
         coh_y.grid(row=1, column=0)
-        coh_z = ttk.Label(coherence_frame, text="coherence(z ):")
+        coh_z = ttk.Label(coherence_frame, text="FT coherenceintegral(z ):")
         coh_z.grid(row=2, column=0)
-        coh_norm = ttk.Label(coherence_frame, text="coherence(norm): ")
+        coh_norm = ttk.Label(coherence_frame, text="FT coherenceintegral(norm): ")
         coh_norm.grid(row=3, column=0)
 
         self.coherence_txts = []
@@ -422,7 +422,7 @@ class MainApp(tk.Tk):
             if (self.data[0] is not None and self.data[1] is not None):
                 for sensor_idx in range(self.SENSORS_NUM):
                     for axis_idx in range(3):
-                        self.coherence(
+                        self.ft_coherence(
                             sensor_idx, 
                             axis_idx, 
                             self.data[0][:, 3 * sensor_idx + axis_idx], 
@@ -431,7 +431,7 @@ class MainApp(tk.Tk):
                             self.frame_range[0], 
                             self.frame_range[1],
                         )
-                    self.coherence(
+                    self.ft_coherence(
                         sensor_idx, 
                         3, 
                         np.linalg.norm(self.data[0][:, 3 * sensor_idx: 3 * sensor_idx + 3], axis=1),
@@ -1027,7 +1027,7 @@ class MainApp(tk.Tk):
         q75, q25 = np.percentile(delta_freq, [75 ,25])
         return q75 - q25
 
-    def coherence(self, sensor_idx, axis_idx, data1, data2, fs, start=0, end=-1):
+    def ft_coherence(self, sensor_idx, axis_idx, data1, data2, fs, start=0, end=-1):
         """
         now developing
         """
