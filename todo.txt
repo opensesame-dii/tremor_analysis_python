@@ -48,7 +48,7 @@
 動作速度: plt.savefig()をやめたら手元で60s→15sの大幅改善
 
 
-[S]spectrogramのnormが表示されない
+[o]spectrogramのnormが表示されない
 [S]wavelet 変換
 [S&M]ネイティブ化(pyinstaller?) (1日試してダメなら諦める)
 [S]今のcoherenceは, coherenceを有意水準以上のものを積分した値であることの注意
