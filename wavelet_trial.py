@@ -25,5 +25,6 @@ print(f"dt: {dt}\nfs: {fs}\nw: {w}")
 
 cwtm = signal.cwt(sig, signal.morlet2, widths, w=w)
 print(f"cwt shape: {cwtm.shape}\n")
-plt.pcolormesh(t, freq, np.abs(cwtm), cmap='jet', shading='gouraud')
-plt.show()
+fig, ax = plt.subplots()
+ax.pcolormesh(t, freq, np.abs(cwtm), cmap='jet', shading='gouraud')
+fig.show()

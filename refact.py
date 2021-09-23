@@ -25,7 +25,7 @@ import pandas as pd
 
 from matplotlib import use
 use('TkAgg')
-
+plt.rcParams['figure.subplot.bottom'] = 0.18
 # number of sensor
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
 SENSORS = 3
@@ -827,6 +827,7 @@ class MainApp(tk.Tk):
         
         for i in range(3):
             self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
+            self.results[data_idx]["sp_graph"][sensor_idx][i].subplots_adjust(left=0.2)
             im = ax.pcolormesh(t, f, specs[i], cmap="jet", vmin=vmin, vmax=vmax)
             ax.set_xlabel("Time [sec]")
             ax.set_ylabel("Frequency [Hz]")
@@ -834,8 +835,8 @@ class MainApp(tk.Tk):
             ax.set_title(titles[i])
             # axpos = axes.get_position()
             # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
-            cbar = self.results[data_idx]["sp_graph"][sensor_idx][i].colorbar(im,ax=ax)
-            cbar.set_label("Amplitude")
+            #cbar = self.results[data_idx]["sp_graph"][sensor_idx][i].colorbar(im,ax=ax)
+            #cbar.set_label("Amplitude")
             # plt.show()
             # input("aa")
             """
@@ -860,7 +861,7 @@ class MainApp(tk.Tk):
 
         # axpos = axes.get_position()
         # cbar_ax = fig.add_axes([0.87, axpos.y0, 0.02, axpos.height])
-        cbar = self.results[data_idx]["sa_graph"][sensor_idx][3].colorbar(im,ax=ax)
+        cbar = self.results[data_idx]["sp_graph"][sensor_idx][3].colorbar(im,ax=ax)
         cbar.set_label("Amplitude")
         """
         plt.figure(dpi=dpi, figsize=wide_figsize)
@@ -948,6 +949,7 @@ class MainApp(tk.Tk):
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
         for i in range(3):
             self.results[data_idx]["sa_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
+            self.results[data_idx]["sa_graph"][sensor_idx][3].subplots_adjust(left=0.3)
             ax.set_ylim(0, vmax * 1.2)
             ax.plot(f, specs[i])
             ax.set_xlabel("Frequency [Hz]")
