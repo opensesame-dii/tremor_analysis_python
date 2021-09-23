@@ -39,7 +39,6 @@ figsize_pixel_small = (figsize_small[0] * dpi, figsize_small[1] * dpi)
 
 
 
-
 def remove_ext(filename):
     return path.splitext(path.basename(filename))[0]  #拡張子を消す
 
@@ -477,6 +476,13 @@ class MainApp(tk.Tk):
                         self.frame_range[0], 
                         self.frame_range[1],
                     )
+                    # self.wt_coherence(
+                    #     self.data[0][:, 3 * sensor_idx : 3 * (sensor_idx + 1)].T,
+                    #     self.data[1][:, 3 * sensor_idx : 3 * (sensor_idx + 1)].T,
+                    #     self.sampling_rate, 
+                    #     self.frame_range[0], 
+                    #     self.frame_range[1],
+                    # )
                 pass
             
             target_data = []
@@ -592,7 +598,7 @@ class MainApp(tk.Tk):
                 self.data_preview_fig[selected][i], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
                 for axis_idx in range(3):
                     ax.plot(self.data[selected][:,i * 3 + axis_idx])
-                    ax.set_title("Date preview")
+                    ax.set_title(f"{path.basename(fname)} preview")
                     ax.set_xlabel("sample")
                 ax.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
             plt.close("all")
@@ -1215,10 +1221,64 @@ class MainApp(tk.Tk):
         self.results[data_idx]["wt_peak_amplitude"][sensor_idx][3] = peak_amp
         self.results[data_idx]["wt_peak_frequency"][sensor_idx][3] = peak_freq
         self.results[data_idx]["wt_peak_time"][sensor_idx][3] = peak_time
-
+        
         # print(f"wavelet result\npeak amp: {peak_amp}\npeak freq: {peak_freq}\npeak time: {peak_time}")
         plt.close("all")
         return peak_amp, peak_freq, peak_time
+
+    def wt_coherence(self, data1_i, data2_i, fs,  start=0, end=-1):
+        """
+        wavelet coherence
+        """
+        
+        if (end == -1):
+            end = len(data1_i[0]) - 1
+        elif (start > end):
+            print("invalid range setting")
+            # sg.Popup("invalid range setting")
+            return None, None, None
+
+        data = [data1_i[:, start: end + 1], data2_i[:, start: end + 1]]
+        # print("nperseg: {}".format(nperseg))
+        spec_2 = []
+
+        t, dt = np.linspace(0, len(data[0][0]) // fs, len(data[0][0]), retstep=True)
+        fs = 1/dt
+        w = 6. # morlet parameter: being 6 to satisfy the admissibility condition (Farge 1992)
+        max_freq = 20
+        steps = 100
+        freq = np.linspace(0, max_freq, steps + 1)[1:] # avoid zero division
+        widths = w*fs / (2*freq*np.pi)
+        for i in range(2):
+            specs = []
+
+            for j in range(3):
+                cwtm = cwt(np.abs(data[i][j]), morlet2, widths, w=w)
+                specs.append(cwtm)
+
+            # convert to 3-dimensional ndarray
+            specs = np.array(specs) #specs.shape: (3, 640, 527)
+            vmin = np.min(np.abs(specs))
+            vmax = np.max(np.abs(specs))
+            # add norm
+            specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
+            spec_2.append(specs)
+        spec_2 = np.array(spec_2)
+
+        # specs[axis][freq][time(sample)]
+        spec_2_conj = []
+        spec_2_conj.append(np.conj(spec_2[0]))
+        spec_2_conj.append(np.conj(spec_2[1]))
+        spec_2_conj = np.array(spec_2_conj)
+
+        cross_specs = np.average(spec_2[0] * spec_2_conj[1], axis=2)
+        power_specs = np.average(spec_2 * spec_2_conj, axis=3)
+        coh = np.power(np.abs(cross_specs), 2) / (power_specs[0] * power_specs[1])
+
+        # fig ,ax = plt.subplots()
+        # ax.plot(coh[0])
+        # fig.savefig("coh.png")
+        
 
 class FigureNavigator(NavigationToolbar2Tk):
     # override to stop displaying mouse coordinate
