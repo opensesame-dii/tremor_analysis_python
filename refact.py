@@ -384,7 +384,7 @@ class MainApp(tk.Tk):
         self.current_data = 0 # showing data index (0 or 1)
         self.data_preview_fig = [[empty_fig_large for i in range(self.SENSORS_NUM)], [empty_fig_large for i in range(self.SENSORS_NUM)]]
 
-        self.modes = ["Spectral Amplitude", "Spectrogram", "wavelet"] # あとで修正(wavelet)
+        self.modes = ["Spectral Amplitude", "Spectrogram", "Wavelet Transform"] # あとで修正(wavelet)
         self.current_mode = 0
         self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
         self.current_sensor = 0
