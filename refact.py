@@ -597,6 +597,7 @@ class MainApp(tk.Tk):
             for i in range(self.SENSORS_NUM):
                 self.data_preview_fig[selected][i], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
                 for axis_idx in range(3):
+                    #ax.plot(detrend(self.data[selected][:,i * 3 + axis_idx]))
                     ax.plot(self.data[selected][:,i * 3 + axis_idx])
                     ax.set_title(f"{path.basename(fname)} preview")
                     ax.set_xlabel("sample")
