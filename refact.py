@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from logging import root, warning
 from os import makedirs, path, name
 from io import BytesIO
 # from shutil import rmtree
@@ -98,6 +99,8 @@ class MainApp(tk.Tk):
 
         self.figsize_small = (3.3, 2.5)
         self.figsize_large = (9.9, 3)
+        self.warning_width=20
+        self.warning_height=10
 
         self.init_data()
 
@@ -160,6 +163,12 @@ class MainApp(tk.Tk):
         analysis.grid(row=1, column=0)
         sensor = ttk.Label(settings_frame, text="Sensor")
         sensor.grid(row=2, column=0)
+        #warning
+        self.warning_frame=ttk.Frame(info_frame)
+        self.warning=ttk.Label(self.warning_frame,text="warning")
+        self.warning_box=tk.Text(self.warning_frame,width=self.warning_width,height=self.warning_height)
+        self.warning_box.grid(row=1,column=0)
+        self.warning.grid(row=0,column=0)
 
         #この書き方（moduleを使う）は良くない気がする、、、
         module = ("data_list","mode_list","analysis","sensor_list")
@@ -356,12 +365,14 @@ class MainApp(tk.Tk):
         info_frame.grid(row=0, column=0)
         img_frame.grid(row=0, column=1)
         data_input_frame.grid(row = 0, column=0, padx=10, pady=20,sticky=tk.W)
-        settings_frame.grid(row=2, column=0, padx=10, pady=5,sticky=tk.W)
-        settings_frame2.grid(row=3, column=0, padx=10, pady=5,sticky=tk.W)
-        result_frame.grid(row=4, column=0,sticky=tk.W, padx=10)
+        settings_frame.grid(row=1, column=0, padx=10, pady=5,sticky=tk.W)
+        self.warning_frame.grid(row=0,column=1,columnspan=2,padx=10)
+        settings_frame2.grid(row=2, column=0, padx=10, pady=5,sticky=tk.W,columnspan=2)
+        result_frame.grid(row=3, column=0,sticky=tk.W, padx=10,columnspan=2)
         data1_frame.grid(row=1, column=0,sticky=tk.W,pady=10)
         data2_frame.grid(row=2, column=0,sticky=tk.W, pady=10)
         coherence_frame.grid(row=3,column=0, sticky=tk.W,pady=10)
+
         self.can_preview.grid(row=0, column=0)
         self.can2.grid(row=1, column=0)
         can3.grid(row=2, column=0)
@@ -593,6 +604,7 @@ class MainApp(tk.Tk):
             for i in range(self.data[selected].shape[1]):
                 if (detect_data_warning(self.data[selected][:,i])):
                     print(f"WARNING: column {i} may go off the scale")
+                    self.warning_box.insert("1.0","column "+str(i)+" may go off the scale\n")
             # update
             for i in range(self.SENSORS_NUM):
                 self.data_preview_fig[selected][i], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
