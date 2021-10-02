@@ -31,6 +31,11 @@ plt.rcParams['figure.subplot.bottom'] = 0.18
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
 SENSORS = 3
 
+# frequency for analysis target
+MAX_F = 20
+MIN_F = 2
+
+
 # figure size settings #白い画像を生成
 dpi = 97
 figsize_big = (12, 3)
@@ -797,16 +802,14 @@ class MainApp(tk.Tk):
             result = np.append(result, [np.fft.fft(seg_data)], axis=0)
         # print("spectrogram shape: {}".format(result.shape))
 
-        # 20Hzまでを出力
-        max_f = 20
         # print(len(data) / fs - segment_duration / 2)
-        sliced_result = result.T[0:int(nPad / fs * max_f), :] * 2 / sum_window
+        sliced_result = result.T[int(nPad / fs * MIN_F):int(nPad / fs * MAX_F), :] * 2 / sum_window
         if (x_length - len(data)) < 0:
             t = np.linspace(segment_duration / 2, len(data) / fs - segment_duration / 2, result.shape[0] + (len(data) - x_length))[0:x_length - len(data)]
         else:
             t = np.linspace(segment_duration / 2, len(data) / fs - segment_duration / 2, result.shape[0] + (len(data) - x_length))
         
-        f = np.linspace(0, max_f, np.shape(sliced_result)[0])
+        f = np.linspace(MIN_F, MAX_F, np.shape(sliced_result)[0])
 
         return sliced_result, f, t
 
@@ -966,7 +969,7 @@ class MainApp(tk.Tk):
             titles = ["x","y","z"]
             ax.set_title(titles[i])
 
-        
+        vmax = np.max(specs[-1])
         self.results[data_idx]["sa_graph"][sensor_idx][3], ax = plt.subplots(figsize=self.figsize_large, dpi=100)
         ax.set_ylim(0, vmax * 1.2)
         ax.plot(f, specs[3])
