@@ -721,6 +721,7 @@ class MainApp(tk.Tk):
         self.range_txt1.insert(0, self.frame_range[0])
         self.range_txt2.delete(0, "end")
         self.range_txt2.insert(0, self.frame_range[1])
+        self.warning_box.delete("1.0","end")
 
     
         
