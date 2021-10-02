@@ -16,8 +16,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 # from PIL import Image, ImageTk
 import numpy as np
-from scipy.signal import hamming, detrend, morlet2, cwt
+from scipy.signal import hamming, detrend, morlet2, cwt, spectrogram, get_window
 from matplotlib.mlab import cohere, window_hanning
+from matplotlib.pyplot import specgram as pltspectrogram
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import backend_tools as cbook
@@ -849,18 +850,35 @@ class MainApp(tk.Tk):
 
 
         specs = []
+        x_length = len(data[0])
+        nTimesSpectrogram = 500; 
+        L = np.min((x_length, nperseg))
+        noverlap = np.ceil(L - (x_length - L) / (nTimesSpectrogram - 1))
+        noverlap = int(np.max((1,noverlap)))
         for i in range(3):
             # start = time.time()
-            spec, f, t = np.abs(self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec))
+            f, t, spec = spectrogram(detrend(data[i]), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=noverlap, nfft=2**12, mode="magnitude", ) # scipy
+            #spec, f, t, _ = pltspectrogram(detrend(data[i]), Fs=fs, pad_to=int(nperseg), noverlap=noverlap, NFFT=2**12, mode="magnitude", scale="linear") # plt
+
+            
+            # spec, f, t = np.abs(self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec))
             specs.append(spec)
             # elapsed_time = time.time() - start
             # print ("elapsed_time:\n{0}".format(elapsed_time))
         # convert to 3-dimensional ndarray
         specs = np.array(specs) #specs.shape: (3, 640, 527)
+
+        # trim into frequency range
+        f_range = np.array([MIN_F, MAX_F]) * len(f) * 2 // self.sampling_rate
+        specs = specs[:, f_range[0]: f_range[1] , :]
+        f = f[f_range[0]: f_range[1]]
+
         vmin = np.min(specs)
         vmax = np.max(specs)
         # add norm
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
+
+
         
         for i in range(3):
             self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
@@ -948,11 +966,19 @@ class MainApp(tk.Tk):
             #################################################################################
             # matlab の detrend の結果と, scipyのdetrend の結果を比較→一致すれば, stftを使いまわして2乗して時間での平均を出せば多分いける
             # scipy の scipy.signal.detrend() が使えるらしい(絶対誤差0.0001以下)
-            spec, f, t = self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec, int(nperseg * 0.75))
+            #spec, f, t = self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec, int(nperseg * 0.75))
+            f, t, spec = spectrogram(detrend(data[i]), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=int(nperseg * 0.75), nfft=2**12, mode="magnitude", ) # scipy
+            # spec, f, t, _ = pltspectrogram(detrend(data[i]), Fs=fs, pad_to=int(nperseg), noverlap=int(nperseg * 0.75), NFFT=2**12, mode="magnitude", scale="linear") #plt
             specs.append(np.sum(np.power(np.abs(spec), 1), axis=1) / (len(t)))
             
         # convert to 3-dimensional ndarray
         specs = np.array(specs) #specs.shape: (3, 640)
+
+        # trim into frequency range
+        f_range = np.array([MIN_F, MAX_F]) * len(f) * 2 // self.sampling_rate
+        specs = specs[:, f_range[0]: f_range[1]]
+        f = f[f_range[0]: f_range[1]]
+
         #specs /= np.sum(np.power(signal.tukey(int(nperseg)), 2)) / np.power(np.sum(signal.tukey(int(nperseg))), 2)
         vmin = np.min(specs)
         vmax = np.max(specs)
