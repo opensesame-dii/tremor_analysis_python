@@ -124,9 +124,32 @@ class MainApp(tk.Tk):
         self.configure(bg="#778899")
 
 
+        #scrollbar canvas
+        canvas = tk.Canvas(self,width=500,height=500)
+        canvas.grid(row=0, column=0)
+        scrollbar_x = tk.Scrollbar(self, orient=tk.HORIZONTAL, command=canvas.xview)
+        scrollbar_x.grid(row=1, column=0, sticky=(tk.W, tk.E))
+        canvas["xscrollcommand"] = scrollbar_x.set
+        canvas.xview_moveto(0)
+        scrollbar_y = tk.Scrollbar(self, orient=tk.VERTICAL, command=canvas.yview)
+        scrollbar_y.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        canvas["yscrollcommand"] = scrollbar_y.set
+        canvas.yview_moveto(0)
+        canvas.config(scrollregion=(0,0,3000,2000)) #スクロール範囲
+
+
         #情報フレームとグラフフレームの作成
-        info_frame = tk.Frame(self, bg="#778899")
-        img_frame = tk.Canvas(self, bg="#778899")
+        frame_canvas = tk.Frame(canvas)
+        info_frame = tk.Frame(frame_canvas, bg="#778899")
+        img_frame = tk.Canvas(frame_canvas, bg="#778899")
+        #frame2 = tk.Frame(frame_canvas)
+
+        #abc = ttk.Label(frame2,text="abc")
+        #abc.grid(row=0,column=1)
+        #frame2.grid(row=0,column=2)
+
+        canvas.create_window((0,0), window=frame_canvas, anchor=tk.NW, width=canvas.cget('width'))
+        #canvas.bind("", self.mouse_y_scroll)
 
         #データを選択するフレーム
         data_input_frame = ttk.Frame(info_frame,relief="groove",borderwidth=5)
@@ -365,7 +388,7 @@ class MainApp(tk.Tk):
         vbar.config(command=img_frame.yview)
         vbar.grid(row=0,column=1)
         """
-
+        
         #フレームの配置
         info_frame.grid(row=0, column=0)
         img_frame.grid(row=0, column=1)
@@ -582,6 +605,12 @@ class MainApp(tk.Tk):
         canvas_.draw()
         canvas_.get_tk_widget().pack()
         FigureNavigator(canvas_, figure_canvas)
+
+    #def mouse_y_scroll(self,event):
+       # if event.delta > 0:
+       #     self.canvas.yview_scroll(-1,"units")
+       # elif event.delta < 0:
+       #     self.canvas.yview_scroll(1, "units")
 
     #ファイルを選ぶ関数
     def file_dialog(self, selected):

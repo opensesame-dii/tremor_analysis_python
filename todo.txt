@@ -81,3 +81,5 @@ https://stackoverflow.com/questions/24960910/how-can-i-pass-parameters-to-on-key
 http://bacspot.dip.jp/virtual_link/www/si.musashi-tech.ac.jp/new_www/Python_IntroTkinter/04/index-3.html
 https://qiita.com/shinno1993/items/3ea14ffd7f17d8214961
 https://office54.net/python/tkinter/tkinter-button-scrollbar
+
+スクロール範囲のサイズ指定の仕方
