@@ -170,7 +170,7 @@ class MainApp(tk.Tk):
         sensor.grid(row=2, column=0)
         #warning
         self.warning_frame=ttk.Frame(info_frame)
-        self.warning=ttk.Label(self.warning_frame,text="warning")
+        self.warning=ttk.Label(self.warning_frame,text="off-scale warning")
         self.warning_box=tk.Text(self.warning_frame,width=self.warning_width,height=self.warning_height)
         self.warning_box.grid(row=1,column=0)
         self.warning.grid(row=0,column=0)
@@ -606,10 +606,18 @@ class MainApp(tk.Tk):
             self.data[selected] = np.reshape(npdata,(df.shape[0],df.shape[1]))
 
             # warning to go off the scale
+            off_scale=[]
             for i in range(self.data[selected].shape[1]):
                 if (detect_data_warning(self.data[selected][:,i])):
                     print(f"WARNING: column {i} may go off the scale")
-                    self.warning_box.insert("1.0","column "+str(i)+" may go off the scale\n")
+                    off_scale.append(i)
+
+            if len(off_scale)!=0:   
+                self.warning_box.insert("end","Data"+str(selected+1)+":")
+
+            for i in off_scale:
+                self.warning_box.insert("end",str(i)+",")
+            self.warning_box.insert("end","\n")
             # update
             for i in range(self.SENSORS_NUM):
                 self.data_preview_fig[selected][i], ax = plt.subplots(figsize=self.figsize_large, dpi=100)

@@ -67,10 +67,17 @@
 
 [o]すべての解析で2Hz~20Hzを対象にする
 [o]norm ピーク値の部分が切れてしまう問題 (x,y,zを統一する, normは別のスケールで)
-[m]あいている場所に振り切れの可能性の一覧を表示する
+[o]あいている場所に振り切れの可能性の一覧を表示する
 [s]scipy, numpy のfftでの時間を試す
 [m]プレビューにチェックボタンで表示するものを絞る機能
+https://qiita.com/shu32/items/5c75a1c0cea56b6bf6cb
+https://matplotlib.org/2.0.2/examples/event_handling/legend_picking.html
+https://stackoverflow.com/questions/24960910/how-can-i-pass-parameters-to-on-key-in-fig-canvas-mpl-connectkey-press-event
+
 
 [ ]ファイルを放り込む→解析してくれる→今の画面のスクショみたいなもの & excelデータをまとめて1つのファイルに
 
 [m](優先度超低)(公開までに)画面サイズが小さい場合に操作不能になる レイアウトをそのままで縮小するのができてほしい
+http://bacspot.dip.jp/virtual_link/www/si.musashi-tech.ac.jp/new_www/Python_IntroTkinter/04/index-3.html
+https://qiita.com/shinno1993/items/3ea14ffd7f17d8214961
+https://office54.net/python/tkinter/tkinter-button-scrollbar
