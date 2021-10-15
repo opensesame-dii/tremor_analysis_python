@@ -16,8 +16,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 # from PIL import Image, ImageTk
 import numpy as np
-from scipy.signal import hamming, detrend, morlet2, cwt
+from scipy.signal import hamming, detrend, morlet2, cwt, spectrogram, get_window
 from matplotlib.mlab import cohere, window_hanning
+from matplotlib.pyplot import specgram as pltspectrogram
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import backend_tools as cbook
@@ -886,18 +887,42 @@ class MainApp(tk.Tk):
 
 
         specs = []
+        x_length = len(data[0])
+        nTimesSpectrogram = 500; 
+        L = np.min((x_length, nperseg))
+        noverlap = np.ceil(L - (x_length - L) / (nTimesSpectrogram - 1))
+        noverlap = int(np.max((1,noverlap)))
         for i in range(3):
             # start = time.time()
-            spec, f, t = np.abs(self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec))
-            specs.append(spec)
+
+            # scipy 
+            f, t, spec = spectrogram(detrend(data[i]), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=noverlap, nfft=2**12, mode="magnitude", )
+            
+            
+            # plt
+            # spec, f, t, _ = pltspectrogram(detrend(data[i]), Fs=fs, pad_to=int(nperseg), noverlap=noverlap, NFFT=2**12, mode="default", scale="linear") 
+            # spec = np.sqrt(np.array(spec))
+            
+            # self-created
+            # spec, f, t = np.abs(self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec))
             # elapsed_time = time.time() - start
             # print ("elapsed_time:\n{0}".format(elapsed_time))
+            
+            specs.append(np.abs(spec))
         # convert to 3-dimensional ndarray
         specs = np.array(specs) #specs.shape: (3, 640, 527)
+
+        # trim into frequency range
+        f_range = np.array([MIN_F, MAX_F]) * len(f) * 2 // self.sampling_rate
+        specs = specs[:, f_range[0]: f_range[1] , :]
+        f = f[f_range[0]: f_range[1]]
+
         vmin = np.min(specs)
         vmax = np.max(specs)
         # add norm
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
+
+
         
         for i in range(3):
             self.results[data_idx]["sp_graph"][sensor_idx][i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
@@ -926,9 +951,11 @@ class MainApp(tk.Tk):
         cbar.set_label("Amplitude")
 
         recording = len(data[0]) / fs
-        f_offset = int(specs.shape[2] * 2 / 20)
+        #f_offset = int(specs.shape[2] * 2 / 20)
         # print("s t {} {}".format(t[0], t[-1]))
-        peak_amp = np.max(specs[3, f_offset:, :])
+
+
+        peak_amp = np.max(specs[3, :, :])
         peak_idx = np.where(specs[3] == peak_amp)
         peak_freq = f[peak_idx[0][0]]
         peak_time = t[peak_idx[1][0]]
@@ -985,11 +1012,19 @@ class MainApp(tk.Tk):
             #################################################################################
             # matlab の detrend の結果と, scipyのdetrend の結果を比較→一致すれば, stftを使いまわして2乗して時間での平均を出せば多分いける
             # scipy の scipy.signal.detrend() が使えるらしい(絶対誤差0.0001以下)
-            spec, f, t = self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec, int(nperseg * 0.75))
+            #spec, f, t = self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec, int(nperseg * 0.75))
+            f, t, spec = spectrogram(detrend(data[i]), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=int(nperseg * 0.75), nfft=2**12, mode="complex", ) # scipy
+            # spec, f, t, _ = pltspectrogram(detrend(data[i]), Fs=fs, pad_to=int(nperseg), noverlap=int(nperseg * 0.75), NFFT=2**12, mode="magnitude", scale="linear") #plt
             specs.append(np.sum(np.power(np.abs(spec), 1), axis=1) / (len(t)))
             
         # convert to 3-dimensional ndarray
         specs = np.array(specs) #specs.shape: (3, 640)
+
+        # trim into frequency range
+        f_range = np.array([MIN_F, MAX_F]) * len(f) * 2 // self.sampling_rate
+        specs = specs[:, f_range[0]: f_range[1]]
+        f = f[f_range[0]: f_range[1]]
+
         #specs /= np.sum(np.power(signal.tukey(int(nperseg)), 2)) / np.power(np.sum(signal.tukey(int(nperseg))), 2)
         vmin = np.min(specs)
         vmax = np.max(specs)
@@ -1080,20 +1115,19 @@ class MainApp(tk.Tk):
         ###########################
         # spline 補間 を使いたいか?
 
-        while (y_ndarray[lower] > peak_val_half and lower >= 0):
+        while (lower >= 0 and y_ndarray[lower] > peak_val_half):
             lower -= 1
         if (y_ndarray[lower] != peak_val_half):
             lower_v = (x[lower] + x[lower + 1]) / 2 # ピークの半分を跨いだ場合は中央値を取る
         else:
             lower_v = x[lower]
-
-        while (y_ndarray[upper] > peak_val_half and upper <= length):
-            upper += 1
+    
+        while (upper < length - 1 and y_ndarray[upper] > peak_val_half):
+            upper += 1    
         if (y_ndarray[upper] != peak_val_half):
             upper_v = (x[upper] + x[upper - 1]) / 2
         else:
             upper_v = x[upper]
-
         # hwp
         d = x[1] - x[0]
         hwp = np.sum(y_ndarray[lower: upper]) * d
