@@ -70,6 +70,20 @@ def detect_data_warning(data):
 
     return any([max_idx[i] + 1 == max_idx[i + 1] for i in range(len(max_idx) - 1)]) or any([min_idx[i] + 1 == min_idx[i + 1] for i in range(len(min_idx) - 1)])
 
+class ClassCanvas(tk.Canvas):
+    def __init__(self, master, scroll_width, scroll_height, bg, width, height):
+        super().__init__(master, bg=bg, width=width, height=height)
+        # Scrollbarを生成してCanvasに配置処理
+        bar_y = tk.Scrollbar(self, orient=tk.VERTICAL)
+        bar_x = tk.Scrollbar(self, orient=tk.HORIZONTAL)
+        bar_y.pack(side=tk.RIGHT, fill=tk.Y)
+        bar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        bar_y.config(command=self.yview)
+        bar_x.config(command=self.xview)
+        self.config(yscrollcommand=bar_y.set, xscrollcommand=bar_x.set)
+        # Canvasのスクロール範囲を設定
+        self.config(scrollregion=(0, 0, scroll_width, scroll_height))
+
 class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -124,10 +138,13 @@ class MainApp(tk.Tk):
             self.attributes("-zoomed", "1")
         self.configure(bg="#778899")
 
-
+        
         #scrollbar canvas
+        """
         canvas = tk.Canvas(self,width=500,height=500)
-        canvas.grid(row=0, column=0)
+        # canvas.grid(row=0, column=0)
+        canvas.place(x=0, y=0, relheight=1, relwidth=1)
+
         scrollbar_x = tk.Scrollbar(self, orient=tk.HORIZONTAL, command=canvas.xview)
         scrollbar_x.grid(row=1, column=0, sticky=(tk.W, tk.E))
         canvas["xscrollcommand"] = scrollbar_x.set
@@ -137,12 +154,43 @@ class MainApp(tk.Tk):
         canvas["yscrollcommand"] = scrollbar_y.set
         canvas.yview_moveto(0)
         canvas.config(scrollregion=(0,0,3000,2000)) #スクロール範囲
+        """
+        """
+        scroll_max = {"width": 600, "height": 700}
+        canvas = ClassCanvas(self, scroll_width=scroll_max["width"], scroll_height=scroll_max["height"], bg="#778899", width=1600, height=700)
+        canvas.place(x=0, y=0, relheight=1, relwidth=1)
+        """
+        canvas = tk.Canvas(self)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH)
 
+        # Scrollbar を生成して配置
+        ybar = tk.Scrollbar(self, orient=tk.VERTICAL)
+        ybar.pack(side=tk.RIGHT, fill=tk.Y)
 
+        # Scrollbarを制御をCanvasに通知する処理を追加
+        ybar.config(command=canvas.yview)
+
+        # Canvasのスクロール範囲を設定
+        canvas.config(scrollregion=(0,0,400,400))
+
+        # Canvasの可動域をScreoobarに通知する処理を追加
+        canvas.config(yscrollcommand=ybar.set)
+
+        # Scrollbar を生成して配置
+        xbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
+        xbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # Scrollbarを制御をCanvasに通知する処理を追加
+        xbar.config(command=canvas.xview)
+
+        # Canvasの可動域をScreoobarに通知する処理を追加
+        canvas.config(xscrollcommand=xbar.set)
+        
+        
         #情報フレームとグラフフレームの作成
-        frame_canvas = tk.Frame(canvas)
-        info_frame = tk.Frame(frame_canvas, bg="#778899")
-        img_frame = tk.Canvas(frame_canvas, bg="#778899")
+        frame_canvas = tk.Frame(canvas, bg="#008899")
+        info_frame = tk.Frame(frame_canvas, bg="#770099")
+        img_frame = tk.Canvas(frame_canvas, bg="#778800")
         #frame2 = tk.Frame(frame_canvas)
 
         #abc = ttk.Label(frame2,text="abc")
