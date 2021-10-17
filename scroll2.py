@@ -18,6 +18,15 @@ canvas.config(scrollregion=(0,0,400,400))
 
 # Canvasの可動域をScreoobarに通知する処理を追加
 canvas.config(yscrollcommand=bar.set)
+# Scrollbar を生成して配置
+xbar = tk.Scrollbar(root, orient=tk.HORIZONTAL)
+xbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+# Scrollbarを制御をCanvasに通知する処理を追加
+xbar.config(command=canvas.xview)
+
+# Canvasの可動域をScreoobarに通知する処理を追加
+canvas.config(xscrollcommand=xbar.set)
 
 # Frame Widgetを 生成
 frame = tk.Frame(canvas)
