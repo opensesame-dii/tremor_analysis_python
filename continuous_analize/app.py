@@ -168,7 +168,7 @@ class MainApp(tk.Tk):
         #メインウィンドウの設定
         # root = tkinter.Tk()
         # root.title("tremor")
-        self.title("tremor")
+        self.title("tremor continuous analizer")
 
         if name == "nt":
             self.state("zoomed")
@@ -177,6 +177,8 @@ class MainApp(tk.Tk):
         self.configure(bg="#778899")
 
         
+        self.files = [] #[[file1_right.csv, file1_left.csv], [file2_right.csv, file2_left.csv], ...]
+
         #scrollbar canvas
         
         canvas = ScrollableFrame(self, [100, 100])
