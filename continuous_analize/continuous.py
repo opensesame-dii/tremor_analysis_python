@@ -107,7 +107,8 @@ class MainApp(tk.Tk):
         self.launched_str = datetime.datetime.now().strftime("%Y%m%d%H%M")
         self.python_dir = os.path.dirname(os.path.abspath(__file__))
         # data directory name
-        self.target_dir = os.path.join(self.python_dir, "data-" + self.launched_str)
+        # self.target_dir = os.path.join(self.python_dir, "data-" + self.launched_str)
+        self.target_dir = os.path.join(self.python_dir, "data-dev") #開発用 
         if not os.path.isdir(self.target_dir):
             os.mkdir(self.target_dir)
 
