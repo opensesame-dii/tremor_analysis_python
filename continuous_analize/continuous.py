@@ -142,8 +142,6 @@ class MainApp(tk.Tk):
         ]
 
 
-        self.init_data()
-
         # exit event
         self.protocol("WM_DELETE_WINDOW", self.app_exit)
 
@@ -162,9 +160,13 @@ class MainApp(tk.Tk):
 
 
 
-        def create_window(self):
-            pass
-
+    def create_window(self):
+        pass
+    
+    def app_exit(self):
+        plt.close('all')
+        #self.destroy()
+        exit()
 
 if __name__ == "__main__":
     app = MainApp()
