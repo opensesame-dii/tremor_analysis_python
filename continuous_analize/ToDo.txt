@@ -5,7 +5,7 @@
     self.launched_str に格納
 [o] data-YYYYMMDDhhmmのディレクトリを作る
     self.target_dir に絶対パスを格納
-
+[ ] (公開時) self.target_dir を開発用のdata-devから日付のものに戻す
 
 ・ウィンドウ作成
 [ ] scan, runボタン作成
