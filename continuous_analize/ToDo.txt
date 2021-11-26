@@ -1,8 +1,10 @@
 ・初期化処理
 [ ] tkinterの設定を呼ぶ
-[ ] windowの生成関数を呼ぶ
-[ ] YYYYMMDDhhmmを取得
-[ ] data-YYYYMMDDhhmmのディレクトリを作る
+[o] windowの生成関数を呼ぶ
+[o] YYYYMMDDhhmmを取得
+    self.launched_str に格納
+[o] data-YYYYMMDDhhmmのディレクトリを作る
+    self.target_dir に絶対パスを格納
 
 
 ・ウィンドウ作成
