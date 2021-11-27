@@ -151,19 +151,38 @@ class MainApp(tk.Tk):
         # root.title("tremor")
         self.title("tremor continuous analizer")
 
-        if os.name == "nt":
-            self.state("zoomed")
-        elif os.name == "posix":
-            self.attributes("-zoomed", "1")
-        self.configure(bg="#778899")
+        #if os.name == "nt":
+         #   self.state("zoomed")
+        #elif os.name == "posix":
+         #   self.attributes("-zoomed", "1")
+        #self.configure(bg="#778899")
 
         self.create_window()
 
 
 
     def create_window(self):
-        pass
-    
+        self.buttonframe = ttk.Frame(self)
+        self.filelistframe = ttk.Frame(self)
+
+        self.scan_button = ttk.Button(self.buttonframe,text="scan") 
+        self.run_button = ttk.Button(self.buttonframe,text="run")
+        self.filelist_box = tk.Text(self.filelistframe)
+        self.progress_bar_text = tk.StringVar(self.buttonframe)
+        self.progress_bar_text.set("--")
+        self.progress_bar = ttk.Label(self.buttonframe)
+        self.per = ttk.Label(self.buttonframe,text = "%")
+        self.directoryname = ttk.Label(self.filelistframe,text="解析対象のディレクトリ: " + "data " +self.launched_str)
+
+        self.buttonframe.grid(row=0,column=0)
+        self.filelistframe.grid(row=0,column=1)
+        self.scan_button.grid(row=0,column=0)
+        self.run_button.grid(row=1,column=0) 
+        self.filelist_box.grid(row=1,column=0) 
+        self.directoryname.grid(row=0,column=0) 
+        self.progress_bar.grid(row=2,column=0)
+        self.per.grid(row=2,column=1)
+
     def app_exit(self):
         plt.close('all')
         #self.destroy()

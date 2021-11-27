@@ -8,9 +8,9 @@
 [ ] (公開時) self.target_dir を開発用のdata-devから日付のものに戻す
 
 ・ウィンドウ作成
-[ ] scan, runボタン作成
-[ ] scan結果表示部分作成
-[ ] progress 表示部分作成
+[o] scan, runボタン作成
+[o] scan結果表示部分作成
+[o] progress 表示部分作成
 [ ] 解析対象のディレクトリ名(data-YYYYMMDDhhmm) 表示部分作成
 
 ・scanの処理
