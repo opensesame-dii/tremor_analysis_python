@@ -159,14 +159,18 @@ class MainApp(tk.Tk):
 
         self.create_window()
 
+    def scan(self):
+        pass
 
+    def run(self):
+        pass
 
     def create_window(self):
         self.buttonframe = ttk.Frame(self)
         self.filelistframe = ttk.Frame(self)
 
-        self.scan_button = ttk.Button(self.buttonframe,text="scan") 
-        self.run_button = ttk.Button(self.buttonframe,text="run")
+        self.scan_button = ttk.Button(self.buttonframe,text="scan",command=lambda: self.scan()) 
+        self.run_button = ttk.Button(self.buttonframe,text="run",command=lambda: self.run())
         self.filelist_box = tk.Text(self.filelistframe)
         self.progress_bar_text = tk.StringVar(self.buttonframe)
         self.progress_bar_text.set("--")
