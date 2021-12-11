@@ -136,14 +136,14 @@ class MainApp(tk.Tk):
             "sa_fwhm",
             "sa_hwp",
             "sa_tsi",
-            "wt_peak_amplitude",
-            "wt_peak_frequency",
-            "wt_peak_time",
+            # "wt_peak_amplitude",
+            # "wt_peak_frequency",
+            # "wt_peak_time",
         ]
         self.result_graph_keys = [
             "sa_graph",
             "sp_graph",
-            "wavelet",
+            # "wavelet",
         ]
 
 
@@ -203,16 +203,18 @@ class MainApp(tk.Tk):
             filenames = os.listdir(os.path.join(self.target_dir, self.dir_list[dir_idx]))
 
             res_lst = []
+            data = []
+            coh_results = None
             for file_idx in range(len(filenames)):
                 df = pd.read_csv(os.path.join(self.target_dir, self.dir_list[dir_idx], filenames[file_idx]), 
                     header=None, skiprows=10, index_col=0, encoding="shift jis")
                 npdata = np.array(df.values.flatten())
-                data = np.reshape(npdata,(df.shape[1],df.shape[0]))
+                data.append(np.reshape(npdata,(df.shape[1],df.shape[0])))
                 
                 # warning to go off the scale
                 off_scale=[]
-                for i in range(data.shape[1]):
-                    if (self.detect_data_warning(data[:,i])):
+                for i in range(data[-1].shape[1]):
+                    if (self.detect_data_warning(data[-1][:,i])):
                         print(f"WARNING: column {i} may go off the scale")
                         off_scale.append(i)
 
@@ -225,7 +227,7 @@ class MainApp(tk.Tk):
 
                 for sensor_idx in range(self.SENSORS_NUM):
                     # analize
-                    sp_graphs, sp_peak_time, sp_peak_freq, sp_peak_time = self.spectrogram_analize(data, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sp_graphs, sp_peak_time, sp_peak_freq, sp_peak_time = self.spectrogram_analize(data[-1], self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
                     res_lst.append({})
                     
                     res_lst[-1]["sp_graphs"] = sp_graphs
@@ -233,7 +235,7 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sp_peak_freq"] = sp_peak_freq
                     res_lst[-1]["sp_peak_time"] = sp_peak_time
 
-                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi = self.power_density_analize(data, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi = self.power_density_analize(data[-1], self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
 
                     res_lst[-1]["sa_graphs"] = sa_graphs
                     res_lst[-1]["sa_peak_amp"] = sa_peak_amp
@@ -241,12 +243,29 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sa_fwhm"] = sa_fwhm
                     res_lst[-1]["sa_hwp"] = sa_hwp
                     res_lst[-1]["sa_tsi"] = sa_tsi
-
                 
             if (len(filenames) == 2):
+                coh_results = []
                 # coherence
-                pass
+                for sensor_idx in range(self.SENSORS_NUM):
+                    coh_results.append([])
+                    for axis_idx in range(3):
+                        coh_results[-1].append(
+                            self.ft_coherence(
+                                data[0][3 * sensor_idx + axis_idx, :], 
+                                data[1][3 * sensor_idx + axis_idx, :], 
+                                self.sampling_rate))
+                    # norm
+                    coh_results[-1].append(
+                        self.ft_coherence(
+                            np.linalg.norm(data[0][3 * sensor_idx: 3 * sensor_idx + axis_idx], axis=0), 
+                            np.linalg.norm(data[1][3 * sensor_idx:3 * sensor_idx + axis_idx], axis=0), 
+                            self.sampling_rate))
+
+            # ここで画像を書き出したい
             for i in res_lst:
+                print(i)
+            for i in coh_results:
                 print(i)
         
         self.progress_bar_text.set("--/--")
