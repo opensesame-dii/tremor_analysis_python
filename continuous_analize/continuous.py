@@ -209,12 +209,12 @@ class MainApp(tk.Tk):
                 df = pd.read_csv(os.path.join(self.target_dir, self.dir_list[dir_idx], filenames[file_idx]), 
                     header=None, skiprows=10, index_col=0, encoding="shift jis")
                 npdata = np.array(df.values.flatten())
-                data.append(np.reshape(npdata,(df.shape[1],df.shape[0])))
+                data.append(np.reshape(npdata,(df.shape[0],df.shape[1])))
                 
                 # warning to go off the scale
                 off_scale=[]
-                for i in range(data[-1].shape[1]):
-                    if (self.detect_data_warning(data[-1][:,i])):
+                for i in range(data[file_idx].shape[1]):
+                    if (self.detect_data_warning(data[file_idx][:,i])):
                         print(f"WARNING: column {i} may go off the scale")
                         off_scale.append(i)
 
@@ -227,7 +227,7 @@ class MainApp(tk.Tk):
 
                 for sensor_idx in range(self.SENSORS_NUM):
                     # analize
-                    sp_graphs, sp_peak_time, sp_peak_freq, sp_peak_time = self.spectrogram_analize(data[-1], self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sp_graphs, sp_peak_time, sp_peak_freq, sp_peak_time = self.spectrogram_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
                     res_lst.append({})
                     
                     res_lst[-1]["sp_graphs"] = sp_graphs
@@ -235,7 +235,7 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sp_peak_freq"] = sp_peak_freq
                     res_lst[-1]["sp_peak_time"] = sp_peak_time
 
-                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi = self.power_density_analize(data[-1], self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi = self.power_density_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
 
                     res_lst[-1]["sa_graphs"] = sa_graphs
                     res_lst[-1]["sa_peak_amp"] = sa_peak_amp
@@ -252,17 +252,41 @@ class MainApp(tk.Tk):
                     for axis_idx in range(3):
                         coh_results[-1].append(
                             self.ft_coherence(
-                                data[0][3 * sensor_idx + axis_idx, :], 
-                                data[1][3 * sensor_idx + axis_idx, :], 
+                                data[0][:, 3 * sensor_idx + axis_idx], 
+                                data[1][:, 3 * sensor_idx + axis_idx], 
                                 self.sampling_rate))
                     # norm
                     coh_results[-1].append(
                         self.ft_coherence(
-                            np.linalg.norm(data[0][3 * sensor_idx: 3 * sensor_idx + axis_idx], axis=0), 
-                            np.linalg.norm(data[1][3 * sensor_idx:3 * sensor_idx + axis_idx], axis=0), 
+                            np.linalg.norm(data[0][:, 3 * sensor_idx: 3 * sensor_idx + axis_idx], axis=1), 
+                            np.linalg.norm(data[1][:, 3 * sensor_idx:3 * sensor_idx + axis_idx], axis=1), 
                             self.sampling_rate))
 
             # ここで画像を書き出したい
+            # 計算結果のデータは, res_lst に dictionary の list で格納
+            # res_lst は, 各センサー毎に結果を入れてある
+            # ファイルが2つあれば, 連続して格納される( len(res_lst) は3または6になる )
+            
+            # dictionary のキーとその型は次の通り
+            # "sp_graphs"     : list of <class 'matplotlib.figure.Figure'> (x, y, z, norm の順)
+            # "sp_peak_time"  : float
+            # "sp_peak_freq"  : float
+            # "sp_peak_time"  : float
+            # "sa_graphs"     : float
+            # "sa_peak_amp"   : float
+            # "sa_peak_freq"  : float
+            # "sa_fwhm"       : float
+            # "sa_hwp"        : float
+            # "sa_tsi"        : float
+
+            # 例えば1つ目のファイルのセンサー2の sa_peak_amp は 
+            # res_lst[2]["sa_peak_amp"]
+            # 2つ目のファイルのセンサー1の sa_peak_amp は 
+            # res_lst[4]["sa_peak_amp"]
+
+            # ファイルが2つ(左右の手のデータ)あれば, coh_resultsに coherence を list of list で格納 
+            # センサーの順に,  x, y, z, norm の順 つまり coh_results[i][j]は, i番目のセンサーの j個目(x, y, z, norm)のデータを表す
+
             for i in res_lst:
                 print(i)
             for i in coh_results:
