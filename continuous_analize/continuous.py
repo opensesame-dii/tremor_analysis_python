@@ -272,7 +272,7 @@ class MainApp(tk.Tk):
             # "sp_peak_time"  : float
             # "sp_peak_freq"  : float
             # "sp_peak_time"  : float
-            # "sa_graphs"     : float
+            # "sa_graphs"     : list of <class 'matplotlib.figure.Figure'> (x, y, z, norm の順)
             # "sa_peak_amp"   : float
             # "sa_peak_freq"  : float
             # "sa_fwhm"       : float
@@ -291,6 +291,8 @@ class MainApp(tk.Tk):
                 print(i)
             for i in coh_results:
                 print(i)
+            
+            # 画像生成関数ここで呼ぶ
         
         self.progress_bar_text.set("--/--")
 
