@@ -296,6 +296,8 @@ class MainApp(tk.Tk):
                 print(i)
             for i in coh_results:
                 print(i)
+            
+            # 画像生成関数ここで呼ぶ
         
         self.progress_bar_text.set("--/--")
 
