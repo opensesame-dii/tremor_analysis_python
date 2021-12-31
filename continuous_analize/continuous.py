@@ -272,7 +272,7 @@ class MainApp(tk.Tk):
             # "sp_peak_time"  : float
             # "sp_peak_freq"  : float
             # "sp_peak_time"  : float
-            # "sa_graphs"     : float
+            # "sa_graphs"     : list of <class 'matplotlib.figure.Figure'> (x, y, z, norm の順)
             # "sa_peak_amp"   : float
             # "sa_peak_freq"  : float
             # "sa_fwhm"       : float
@@ -286,6 +286,11 @@ class MainApp(tk.Tk):
 
             # ファイルが2つ(左右の手のデータ)あれば, coh_resultsに coherence を list of list で格納 
             # センサーの順に,  x, y, z, norm の順 つまり coh_results[i][j]は, i番目のセンサーの j個目(x, y, z, norm)のデータを表す
+
+            
+
+
+
 
             for i in res_lst:
                 print(i)
