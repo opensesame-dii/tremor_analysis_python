@@ -164,24 +164,39 @@ class MainApp(tk.Tk):
         self.create_window()
 
     def scan(self):
-        self.update_directoryname()
+        self.clear_directorynames()
         self.dir_list = [] # list of data directories
+        error_list = [] # list of error
+        result = True
         for d in os.listdir(self.target_dir):
-            self.dir_list.append(os.path.join(self.target_dir, d))
+            path_to_dir = os.path.join(self.target_dir, d)
+            # check directory or not
+            if (not os.path.isdir(path_to_dir)):
+                continue
+            self.dir_list.append(path_to_dir)
 
             if (len(os.listdir(self.dir_list[-1])) != 2 and len(os.listdir(self.dir_list[-1])) != 1):
                 err_msg = f"{len(os.listdir(self.dir_list[-1]))} files in {self.dir_list[-1]}, but must be 1 or 2"
                 print(f"ERROR: {err_msg}")
-                tk.messagebox.showerror("ERROR", err_msg)
-                return False
+                # tk.messagebox.showerror("ERROR", err_msg)
+                error_list.append(err_msg)
+                result = False
             for filename in os.listdir(self.dir_list[-1]):
                 if (not os.path.splitext(filename)[1] in self.file_extensions):
                     err_msg = f"invalid file extension {filename} in {d}"
                     print(f"ERROR: {err_msg}")
-                    tk.messagebox.showerror("ERROR", err_msg)
-                    return False
-        self.update_directoryname(self.dir_list)
-        return True
+                    # tk.messagebox.showerror("ERROR", err_msg)
+                    error_list.append(err_msg)
+                    result = False
+        if (not result):
+            self.update_directoryname("error", error_list)
+            tk.messagebox.showerror("ERROR", "please check error message")
+
+        else:
+            self.update_directoryname("directories", self.dir_list)
+            self.insert_directorynames("no error detected. ready to run.")
+        print(self.dir_list)
+        return result
 
     def detect_data_warning(self, data):
         """
@@ -196,6 +211,7 @@ class MainApp(tk.Tk):
         # check file error
         if (not self.scan()):
             return
+        self.insert_directorynames("analize has started")
         
         for dir_idx in range(len(self.dir_list)):
             self.progress_bar_text.set(f"{dir_idx}/{len(self.dir_list)}")
@@ -375,12 +391,30 @@ class MainApp(tk.Tk):
         makepic(self)
         self.progress_bar_text.set("--/--")
 
+        self.insert_directorynames("analize finished")
         tk.messagebox.showinfo("Info", "analize finished")
         
+    def clear_directorynames(self):
+        self.infolist_box.delete(1.0, "end")
+    def insert_directorynames(self, text:str=""):
+        self.infolist_box.insert("end", text)
+        self.infolist_box.insert("end", "\n")
 
-    def update_directoryname(self, filename:list=None):
+    def update_directoryname(self, index:str="", filename:list=None):
+        """
+        filename: list of str
+            update infolist_box
+        """
+        if (index != ""):
+
+            self.infolist_box.insert("end", f"-- {index} --")
+            self.infolist_box.insert("end","\n")
         if filename is None:
             pass
+        else:
+            for dir in filename:
+                self.infolist_box.insert("end", dir)
+                self.infolist_box.insert("end","\n")
 
       
 
