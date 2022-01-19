@@ -214,6 +214,7 @@ class MainApp(tk.Tk):
         self.insert_directorynames("analize has started")
         
         for dir_idx in range(len(self.dir_list)):
+            print(self.dir_list)
             self.progress_bar_text.set(f"{dir_idx}/{len(self.dir_list)}")
             # filenames in the directory
             filenames = os.listdir(os.path.join(self.target_dir, self.dir_list[dir_idx]))
