@@ -286,7 +286,81 @@ class MainApp(tk.Tk):
 
             # ファイルが2つ(左右の手のデータ)あれば, coh_resultsに coherence を list of list で格納 
             # センサーの順に,  x, y, z, norm の順 つまり coh_results[i][j]は, i番目のセンサーの j個目(x, y, z, norm)のデータを表す
+            def makepic(self):
+                for i in range(self.SENSORS_NUM):
+                    t = np.linspace(-np.pi, np.pi, 1000)
+                    x1 = np.sin(2*t)
+                    x2 = np.cos(2*t)
+                    x3 = x1 + x2
+                    fig = plt.figure(figsize=(10,8))
+                    #ax1 = plt.subplot2grid((3,3), (0,0), colspan=3)
+                    ax2 = plt.subplot2grid((3,4), (1,1), colspan=3)
+                    ax3 = plt.subplot2grid((3,4), (2,1))
+                    ax4 = plt.subplot2grid((3,4), (2,2))
+                    ax5 = plt.subplot2grid((3,4), (2,3))
 
+                    plt.gcf().text(0.01,0.95,"sensor:"+str(i), backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.85,res_lst[i]["sp_peak_time"], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.80,res_lst[i]["sp_peak_freq"], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.75,res_lst[i]["sa_peak_amp"], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.70,res_lst[i]["sa_peak_freq"], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.65,res_lst[i]["sa_fwhm"], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.60,res_lst[i]["sa_hwp"], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.55,res_lst[i]["sa_tsi"], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.50,coh_results[i][0], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.45,coh_results[i][1], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.40,coh_results[i][2], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.35,coh_results[i][3], backgroundcolor="#D3DEF1")                  
+                
+
+                    plt.gcf().text(0.001,0.85,"sp_peak_time:")
+                    plt.gcf().text(0.001,0.80,"sp_peak_freq:")
+                    plt.gcf().text(0.001,0.75,"sa_peak_amp:")
+                    plt.gcf().text(0.001,0.70,"sa_peak_freq:")
+                    plt.gcf().text(0.001,0.65,"sa_fwhm:")
+                    #plt.gcf().text(0.001,0.60,"sa_tsi")
+                    plt.gcf().text(0.001,0.60,"sa_hwp:")
+                    plt.gcf().text(0.001,0.55,"sa_tsi:")
+                    plt.gcf().text(0.001,0.50,"coherence_x:")
+                    plt.gcf().text(0.001,0.45,"coherence_y:")
+                    plt.gcf().text(0.001,0.40,"coherence_z:")
+                    plt.gcf().text(0.001,0.35,"coherence_norm:")
+                    
+
+                    #ax1 = res_lst[2]["sp_graphs"][1]
+                    #ax1.set_title('sin')
+                    #ax1.set_xlabel('t')
+                    #ax1.set_ylabel('x')
+                    #ax1.set_xlim(-np.pi, np.pi)
+                    #ax1.grid(True)
+                    ax2.plot(t, x2, linewidth=2)
+                    ax2.set_title('cos')
+                    ax2.set_xlabel('t')
+                    ax2.set_ylabel('x')
+                    ax2.set_xlim(-np.pi, np.pi)
+                    ax2.grid(True)
+                    ax3.plot(t, x3, linewidth=2)
+                    ax3.set_title('sin+cos')
+                    ax3.set_xlabel('t')
+                    ax3.set_ylabel('x')
+                    ax3.set_xlim(-np.pi, np.pi)
+                    ax3.grid(True)
+                    ax4.plot(t, x3, linewidth=2)
+                    ax4.set_title('sin+cos')
+                    ax4.set_xlabel('t')
+                    ax4.set_ylabel('x')
+                    ax4.set_xlim(-np.pi, np.pi)
+                    ax4.grid(True)
+                    ax5.plot(t, x3, linewidth=2)
+                    ax5.set_title('sin+cos')
+                    ax5.set_xlabel('t')
+                    ax5.set_ylabel('x')
+                    ax5.set_xlim(-np.pi, np.pi)
+                    ax5.grid(True)
+                    
+                    fig.savefig(os.path.join(self.dir_list[dir_idx], f"hoge{i}.png"))              
+       
+            
             
 
 
@@ -298,7 +372,7 @@ class MainApp(tk.Tk):
                 print(i)
             
             # 画像生成関数ここで呼ぶ
-        
+        makepic(self)
         self.progress_bar_text.set("--/--")
 
         tk.messagebox.showinfo("Info", "analize finished")
@@ -308,7 +382,7 @@ class MainApp(tk.Tk):
         if filename is None:
             pass
 
-        
+      
 
 
     def create_window(self):
