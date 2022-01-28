@@ -7,6 +7,7 @@ from io import BytesIO
 # from shutil import rmtree
 import matplotlib.pyplot as plt
 from copy import deepcopy
+from copy import copy
 from sys import exit
 
 import datetime
@@ -244,7 +245,7 @@ class MainApp(tk.Tk):
 
                 for sensor_idx in range(self.SENSORS_NUM):
                     # analize
-                    sp_graphs, sp_peak_time, sp_peak_freq, sp_peak_time = self.spectrogram_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sp_graphs, sp_peak_time, sp_peak_freq, sp_peak_time, sp_f, sp_t = self.spectrogram_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
                     res_lst.append({})
                     
                     res_lst[-1]["sp_graphs"] = sp_graphs
@@ -252,7 +253,7 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sp_peak_freq"] = sp_peak_freq
                     res_lst[-1]["sp_peak_time"] = sp_peak_time
 
-                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi = self.power_density_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f, sa_t = self.power_density_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
 
                     res_lst[-1]["sa_graphs"] = sa_graphs
                     res_lst[-1]["sa_peak_amp"] = sa_peak_amp
@@ -350,46 +351,56 @@ class MainApp(tk.Tk):
                     #ax1.set_ylabel('x')
                     #ax1.set_xlim(-np.pi, np.pi)
                     #ax1.grid(True)
-                    ax2.plot(t, x2, linewidth=2)
-                    ax2.set_title('cos')
-                    ax2.set_xlabel('t')
-                    ax2.set_ylabel('x')
-                    ax2.set_xlim(-np.pi, np.pi)
-                    ax2.grid(True)
-                    ax3.plot(t, x3, linewidth=2)
-                    ax3.set_title('sin+cos')
-                    ax3.set_xlabel('t')
-                    ax3.set_ylabel('x')
-                    ax3.set_xlim(-np.pi, np.pi)
-                    ax3.grid(True)
-                    ax4.plot(t, x3, linewidth=2)
-                    ax4.set_title('sin+cos')
-                    ax4.set_xlabel('t')
-                    ax4.set_ylabel('x')
-                    ax4.set_xlim(-np.pi, np.pi)
-                    ax4.grid(True)
-                    ax5.plot(t, x3, linewidth=2)
-                    ax5.set_title('sin+cos')
-                    ax5.set_xlabel('t')
-                    ax5.set_ylabel('x')
-                    ax5.set_xlim(-np.pi, np.pi)
-                    ax5.grid(True)
+                    graphs = [ax3, ax4, ax5]
+                    titles = ["x","y","z"]
+                    vmin = np.min(sp_graphs[0:3])
+                    vmax = np.max(sp_graphs[0:3])
+                    for i in range(3):
+                        im = graphs[i].pcolormesh(sp_t, sp_f, sp_graphs[i], cmap="jet", vmin=vmin, vmax=vmax)
+                        graphs[i].set_xlabel("Time [sec]")
+                        graphs[i].set_ylabel("Frequency [Hz]")
+                        graphs[i].set_title(titles[i])
+                    im = ax2.pcolormesh(sp_t, sp_f, sp_graphs[3], cmap="jet", vmin=vmin, vmax=vmax)
+                    ax2.set_title("Norm")
+                    ax2.set_xlabel("Time [sec]")
+                    ax2.set_ylabel("Frequency [Hz]")
+                    cbar = plt.colorbar(im,ax=ax2)
+                    cbar.set_label("Amplitude")
+
+                    # ax2.plot(t, x2, linewidth=2)
+                    # ax2.set_title('cos')
+                    # ax2.set_xlabel('t')
+                    # ax2.set_ylabel('x')
+                    # ax2.set_xlim(-np.pi, np.pi)
+                    # ax2.grid(True)
+                    # ax3.plot(t, x3, linewidth=2)
+                    # ax3.set_title('sin+cos')
+                    # ax3.set_xlabel('t')
+                    # ax3.set_ylabel('x')
+                    # ax3.set_xlim(-np.pi, np.pi)
+                    # ax3.grid(True)
+                    # ax4.plot(t, x3, linewidth=2)
+                    # ax4.set_title('sin+cos')
+                    # ax4.set_xlabel('t')
+                    # ax4.set_ylabel('x')
+                    # ax4.set_xlim(-np.pi, np.pi)
+                    # ax4.grid(True)
+                    # ax5.plot(t, x3, linewidth=2)
+                    # ax5.set_title('sin+cos')
+                    # ax5.set_xlabel('t')
+                    # ax5.set_ylabel('x')
+                    # ax5.set_xlim(-np.pi, np.pi)
+                    # ax5.grid(True)
                     
                     fig.savefig(os.path.join(self.dir_list[dir_idx], f"hoge{i}.png"))              
        
-            
-            
-
-
-
-
             for i in res_lst:
                 print(i)
             for i in coh_results:
                 print(i)
             
             # 画像生成関数ここで呼ぶ
-        makepic(self)
+            makepic(self)
         self.progress_bar_text.set("--/--")
 
         self.insert_directorynames("analize finished")
@@ -561,7 +572,8 @@ class MainApp(tk.Tk):
         # print("peaktime(s): {}".format(peak_time))
 
         plt.close("all")
-        return graphs, peak_time, peak_freq, peak_time
+        # return graphs, peak_time, peak_freq, peak_time
+        return specs, peak_time, peak_freq, peak_time, f, t
 
     def power_density_analize(self, data_i, fs, nperseg, start=0, end=-1):
         """
@@ -662,7 +674,8 @@ class MainApp(tk.Tk):
         # print("Tremor Stability Index: {}".format(tsi))
 
         plt.close("all")
-        return graphs, peak_amp, peak_freq, fwhm, hwp, tsi
+        # return graphs, peak_amp, peak_freq, fwhm, hwp, tsi
+        return specs, peak_amp, peak_freq, fwhm, hwp, tsi, f, t
 
     def full_width_half_maximum(self, x, y):
         """
