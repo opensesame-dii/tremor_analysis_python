@@ -112,8 +112,8 @@ class MainApp(tk.Tk):
         self.launched_str = datetime.datetime.now().strftime("%Y%m%d%H%M")
         self.python_dir = os.path.dirname(os.path.abspath(__file__))
         # data directory name
-        # self.target_dir = os.path.join(self.python_dir, "data-" + self.launched_str)
-        self.target_dir = os.path.join(self.python_dir, "data-dev") #開発用 
+        self.target_dir = os.path.join(self.python_dir, "data-" + self.launched_str)
+        # self.target_dir = os.path.join(self.python_dir, "data-dev") # development mode
         if not os.path.isdir(self.target_dir):
             os.mkdir(self.target_dir)
 
@@ -227,6 +227,10 @@ class MainApp(tk.Tk):
         # check file error
         if (not self.scan()):
             return
+        if (len(self.dir_list) == 0):
+            tk.messagebox.showinfo("Info", "directory is empty")
+            return
+
         self.insert_directorynames("analize has started")
 
         csv_file = open(os.path.join(self.target_dir, "results.csv", ), "a+")
