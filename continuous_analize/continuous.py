@@ -30,6 +30,8 @@ from matplotlib import backend_tools as cbook
 # import PySimpleGUI as sg
 import pandas as pd
 
+from csv import writer
+
 from matplotlib import use
 use('TkAgg')
 plt.rcParams['figure.subplot.bottom'] = 0.18
@@ -226,9 +228,28 @@ class MainApp(tk.Tk):
         if (not self.scan()):
             return
         self.insert_directorynames("analize has started")
+
+        csv_file = open(os.path.join(self.target_dir, "results.csv", ), "a+")
+        writer = csv.writer(csv_file, lineterminator="\n")
+        writer.writerow([
+            "filename",
+            "sensor",
+            "Spectrogram Peak Amplitude",
+            "Spectrogram Peak Frequency(Hz)",
+            "Spectrogram Peak Time(s)",
+            "Whole Peak Amplitude",
+            "Whole Peak Frequency(Hz)",
+            "Full-width Half Maximum(Hz)",
+            "Half-width Power",
+            "Tremor Stability Index",
+            "FT coherence integral(x)",
+            "FT coherence integral(y)",
+            "FT coherence integral(z)",
+            "FT coherence integral(norm)"
+            ])
         
         for dir_idx in range(len(self.dir_list)):
-            print(self.dir_list)
+            print(self.dir_list[dir_idx])
             self.progress_bar_text.set(f"{dir_idx}/{len(self.dir_list)}")
             # filenames in the directory
             filenames = self.extract_csv_xls(os.listdir(os.path.join(self.target_dir, self.dir_list[dir_idx])))
@@ -236,6 +257,8 @@ class MainApp(tk.Tk):
             res_lst = []
             data = []
             coh_results = None
+            csv_row = []
+
             for file_idx in range(len(filenames)):
                 df = pd.read_csv(os.path.join(self.target_dir, self.dir_list[dir_idx], filenames[file_idx]), 
                     header=None, skiprows=10, index_col=0, encoding="shift jis")
@@ -256,13 +279,14 @@ class MainApp(tk.Tk):
                         self.infolist_box.insert("end",str(i)+",")
                     self.infolist_box.insert("end","\n")
 
+
                 for sensor_idx in range(self.SENSORS_NUM):
                     # analize
-                    sp_graphs, sp_peak_time, sp_peak_freq, sp_peak_time, sp_f, sp_t = self.spectrogram_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sp_graphs, sp_peak_amp, sp_peak_freq, sp_peak_time, sp_f, sp_t = self.spectrogram_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
                     res_lst.append({})
                     
                     res_lst[-1]["sp_graphs"] = sp_graphs
-                    res_lst[-1]["sp_peak_time"] = sp_peak_time
+                    res_lst[-1]["sp_peak_amp"] = sp_peak_amp
                     res_lst[-1]["sp_peak_freq"] = sp_peak_freq
                     res_lst[-1]["sp_peak_time"] = sp_peak_time
                     res_lst[-1]["sp_f"] = sp_f
@@ -277,6 +301,14 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sa_hwp"] = sa_hwp
                     res_lst[-1]["sa_tsi"] = sa_tsi
                     res_lst[-1]["sa_f"] = sa_f
+
+                    csv_row.append([
+                        filenames[file_idx],
+                        sensor_idx,
+                        sp_peak_amp, sp_peak_freq, sp_peak_time,
+                        sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi,
+                    ])
+                    
                 
             coh_results = []
             if (len(filenames) == 2):
@@ -284,18 +316,21 @@ class MainApp(tk.Tk):
                 for sensor_idx in range(self.SENSORS_NUM):
                     coh_results.append([])
                     for axis_idx in range(3):
-                        coh_results[-1].append(
-                            self.ft_coherence(
+                        coh = self.ft_coherence(
                                 data[0][:, 3 * sensor_idx + axis_idx], 
                                 data[1][:, 3 * sensor_idx + axis_idx], 
-                                self.sampling_rate))
+                                self.sampling_rate)
+                        coh_results[-1].append(coh)
+                        csv_row[sensor_idx].append(coh)
+                        csv_row[sensor_idx + self.SENSORS_NUM].append(coh)
                     # norm
-                    coh_results[-1].append(
-                        self.ft_coherence(
+                    coh = self.ft_coherence(
                             np.linalg.norm(data[0][:, 3 * sensor_idx: 3 * sensor_idx + axis_idx], axis=1), 
                             np.linalg.norm(data[1][:, 3 * sensor_idx:3 * sensor_idx + axis_idx], axis=1), 
-                            self.sampling_rate))
-
+                            self.sampling_rate)
+                    coh_results[-1].append(coh)
+                    csv_row[sensor_idx].append(coh)
+                    csv_row[sensor_idx + self.SENSORS_NUM].append(coh)
             # ここで画像を書き出したい
             # 計算結果のデータは, res_lst に dictionary の list で格納
             # res_lst は, 各センサー毎に結果を入れてある
@@ -323,6 +358,13 @@ class MainApp(tk.Tk):
             
             # 画像生成関数ここで呼ぶ
             self.makepic(dir_idx, filenames, data, res_lst, coh_results)
+
+            # add to csv
+            for r in csv_row:
+                writer.writerow(r)
+        
+        # end processing
+        csv_file.close()
         self.progress_bar_text.set("--/--")
 
         self.insert_directorynames("analize finished")
@@ -346,8 +388,10 @@ class MainApp(tk.Tk):
                 ax_z.grid(True)
 
                 plt.gcf().text(0.01,0.95,f"sensor:{i}", backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.85,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_time"], backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.80,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_freq"], backgroundcolor="#D3DEF1")
+
+                plt.gcf().text(0.1,0.90,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_amp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.85,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_freq"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.80,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_time"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.1,0.75,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_amp"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.1,0.70,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_freq"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.1,0.65,res_lst[file_idx * self.SENSORS_NUM + i]["sa_fwhm"], backgroundcolor="#D3DEF1")
@@ -360,8 +404,9 @@ class MainApp(tk.Tk):
                     plt.gcf().text(0.1,0.35,coh_results[i][3], backgroundcolor="#D3DEF1")                  
             
 
-                plt.gcf().text(0.001,0.85,"sp_peak_time:")
-                plt.gcf().text(0.001,0.80,"sp_peak_freq:")
+                plt.gcf().text(0.001,0.90,"sp_peak_amp:")
+                plt.gcf().text(0.001,0.85,"sp_peak_freq:")
+                plt.gcf().text(0.001,0.80,"sp_peak_time:")
                 plt.gcf().text(0.001,0.75,"sa_peak_amp:")
                 plt.gcf().text(0.001,0.70,"sa_peak_freq:")
                 plt.gcf().text(0.001,0.65,"sa_fwhm:")
@@ -597,7 +642,7 @@ class MainApp(tk.Tk):
 
         plt.close("all")
         # return graphs, peak_time, peak_freq, peak_time
-        return specs, peak_time, peak_freq, peak_time, f, t
+        return specs, peak_amp, peak_freq, peak_time, f, t
 
     def power_density_analize(self, data_i, fs, nperseg, start=0, end=-1):
         """
