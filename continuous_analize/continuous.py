@@ -265,8 +265,10 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sp_peak_time"] = sp_peak_time
                     res_lst[-1]["sp_peak_freq"] = sp_peak_freq
                     res_lst[-1]["sp_peak_time"] = sp_peak_time
+                    res_lst[-1]["sp_f"] = sp_f
+                    res_lst[-1]["sp_t"] = sp_t
 
-                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f, sa_t = self.power_density_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f = self.power_density_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
 
                     res_lst[-1]["sa_graphs"] = sa_graphs
                     res_lst[-1]["sa_peak_amp"] = sa_peak_amp
@@ -274,9 +276,10 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sa_fwhm"] = sa_fwhm
                     res_lst[-1]["sa_hwp"] = sa_hwp
                     res_lst[-1]["sa_tsi"] = sa_tsi
+                    res_lst[-1]["sa_f"] = sa_f
                 
+            coh_results = []
             if (len(filenames) == 2):
-                coh_results = []
                 # coherence
                 for sensor_idx in range(self.SENSORS_NUM):
                     coh_results.append([])
@@ -317,119 +320,115 @@ class MainApp(tk.Tk):
 
             # ファイルが2つ(左右の手のデータ)あれば, coh_resultsに coherence を list of list で格納 
             # センサーの順に,  x, y, z, norm の順 つまり coh_results[i][j]は, i番目のセンサーの j個目(x, y, z, norm)のデータを表す
-            def makepic(self):
-                for file_idx in range(len(filenames)):
-                    for i in range(self.SENSORS_NUM):
-                        fig = plt.figure(figsize=(12,8))
-                        ax_preview = plt.subplot2grid((3,4), (0,1), colspan=3)
-                        ax_norm = plt.subplot2grid((3,4), (1,1), colspan=3)
-                        ax_x = plt.subplot2grid((3,4), (2,1))
-                        ax_y = plt.subplot2grid((3,4), (2,2))
-                        ax_z = plt.subplot2grid((3,4), (2,3))
-                        plt.subplots_adjust(hspace=0.5)
-                        ax_preview.grid(True)
-                        ax_norm.grid(True)
-                        ax_x.grid(True)
-                        ax_y.grid(True)
-                        ax_z.grid(True)
-
-                        plt.gcf().text(0.01,0.95,f"sensor:{i}", backgroundcolor="#D3DEF1")
-                        plt.gcf().text(0.1,0.85,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_time"], backgroundcolor="#D3DEF1")
-                        plt.gcf().text(0.1,0.80,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_freq"], backgroundcolor="#D3DEF1")
-                        plt.gcf().text(0.1,0.75,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_amp"], backgroundcolor="#D3DEF1")
-                        plt.gcf().text(0.1,0.70,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_freq"], backgroundcolor="#D3DEF1")
-                        plt.gcf().text(0.1,0.65,res_lst[file_idx * self.SENSORS_NUM + i]["sa_fwhm"], backgroundcolor="#D3DEF1")
-                        plt.gcf().text(0.1,0.60,res_lst[file_idx * self.SENSORS_NUM + i]["sa_hwp"], backgroundcolor="#D3DEF1")
-                        plt.gcf().text(0.1,0.55,res_lst[file_idx * self.SENSORS_NUM + i]["sa_tsi"], backgroundcolor="#D3DEF1")
-                        if (len(filenames) == 2):
-                            plt.gcf().text(0.1,0.50,coh_results[i][0], backgroundcolor="#D3DEF1")
-                            plt.gcf().text(0.1,0.45,coh_results[i][1], backgroundcolor="#D3DEF1")
-                            plt.gcf().text(0.1,0.40,coh_results[i][2], backgroundcolor="#D3DEF1")
-                            plt.gcf().text(0.1,0.35,coh_results[i][3], backgroundcolor="#D3DEF1")                  
-                    
-
-                        plt.gcf().text(0.001,0.85,"sp_peak_time:")
-                        plt.gcf().text(0.001,0.80,"sp_peak_freq:")
-                        plt.gcf().text(0.001,0.75,"sa_peak_amp:")
-                        plt.gcf().text(0.001,0.70,"sa_peak_freq:")
-                        plt.gcf().text(0.001,0.65,"sa_fwhm:")
-                        #plt.gcf().text(0.001,0.60,"sa_tsi")
-                        plt.gcf().text(0.001,0.60,"sa_hwp:")
-                        plt.gcf().text(0.001,0.55,"sa_tsi:")
-                        plt.gcf().text(0.001,0.50,"coherence_x:")
-                        plt.gcf().text(0.001,0.45,"coherence_y:")
-                        plt.gcf().text(0.001,0.40,"coherence_z:")
-                        plt.gcf().text(0.001,0.35,"coherence_norm:")
-                        
-
-                        ax_preview.set_title('preview')
-                        ax_preview.set_xlabel('sample')
-                        
-                        graphs = [ax_x, ax_y, ax_z]
-                        titles = ["x","y","z"]
-
-                        # spectrogram
-                        vmin = np.min(res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][0:3])
-                        vmax = np.max(res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][0:3])
-                        for axis in range(3):
-                            # plot preview
-                            ax_preview.plot(data[file_idx][:,i * self.SENSORS_NUM + axis])
-
-                            # plot spectrogram
-                            im = graphs[axis].pcolormesh(sp_t, sp_f, res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][axis], cmap="jet", vmin=vmin, vmax=vmax)
-                            graphs[axis].set_xlabel("Time [sec]")
-                            graphs[axis].set_title(titles[axis])
-                        ax_preview.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
-                        # x軸のみ縦軸のラベルを付ける
-                        graphs[0].set_ylabel("Frequency [Hz]")
-                        im = ax_norm.pcolormesh(sp_t, sp_f, res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][3], cmap="jet", vmin=vmin, vmax=vmax)
-                        ax_norm.set_title("Norm")
-                        ax_norm.set_xlabel("Time [sec]")
-                        ax_norm.set_ylabel("Frequency [Hz]")
-                        cbar = plt.colorbar(im,ax=ax_norm)
-                        cbar.set_label("Amplitude")
-                        
-                        fig.savefig(os.path.join(self.dir_list[dir_idx], f"{filenames[file_idx]}_sensor{i}_spectrogram.png"))
-
-                        ax_norm.clear()
-                        ax_x.clear()
-                        ax_y.clear()
-                        ax_z.clear()
-                        cbar.remove()
-
-                        # spectral amptitude
-                        vmin = np.min(res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][0:3])
-                        vmax = np.max(res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][0:3])
-                        for axis in range(3):
-                            # plot spectrogram
-                            graphs[axis].set_ylim(0, vmax * 1.2)
-                            graphs[axis].plot(sa_f, res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][axis])
-                            graphs[axis].set_xlabel("Frequency [Hz]")
-                            graphs[axis].set_title(titles[axis])
-                        # ax_preview.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
-                        # x軸のみ縦軸のラベルを付ける
-                        graphs[0].set_ylabel("Amplitude")
-                        ax_norm.plot(sa_f, res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][3])
-                        ax_norm.set_title("Norm")
-                        ax_norm.set_xlabel("Frequency [Hz]")
-                        ax_norm.set_ylabel("Amplitude")
-                        
-                        fig.savefig(os.path.join(self.dir_list[dir_idx], f"{filenames[file_idx]}_sensor{i}_spectral_amplitude.png"))
-
-
-                        plt.close('all')
-        
-                # for i in res_lst:
-                #     print(i)
-                # for i in coh_results:
-                #     print(i)
             
             # 画像生成関数ここで呼ぶ
-            makepic(self)
+            self.makepic(dir_idx, filenames, data, res_lst, coh_results)
         self.progress_bar_text.set("--/--")
 
         self.insert_directorynames("analize finished")
+        print("analize finished")
         tk.messagebox.showinfo("Info", "analize finished")
+
+    def makepic(self, dir_idx, filenames, data, res_lst, coh_results):
+        for file_idx in range(len(filenames)):
+            for i in range(self.SENSORS_NUM):
+                fig = plt.figure(figsize=(12,8))
+                ax_preview = plt.subplot2grid((3,4), (0,1), colspan=3)
+                ax_norm = plt.subplot2grid((3,4), (1,1), colspan=3)
+                ax_x = plt.subplot2grid((3,4), (2,1))
+                ax_y = plt.subplot2grid((3,4), (2,2))
+                ax_z = plt.subplot2grid((3,4), (2,3))
+                plt.subplots_adjust(hspace=0.5)
+                ax_preview.grid(True)
+                ax_norm.grid(True)
+                ax_x.grid(True)
+                ax_y.grid(True)
+                ax_z.grid(True)
+
+                plt.gcf().text(0.01,0.95,f"sensor:{i}", backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.85,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_time"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.80,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_freq"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.75,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_amp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.70,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_freq"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.65,res_lst[file_idx * self.SENSORS_NUM + i]["sa_fwhm"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.60,res_lst[file_idx * self.SENSORS_NUM + i]["sa_hwp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,0.55,res_lst[file_idx * self.SENSORS_NUM + i]["sa_tsi"], backgroundcolor="#D3DEF1")
+                if (len(filenames) == 2):
+                    plt.gcf().text(0.1,0.50,coh_results[i][0], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.45,coh_results[i][1], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.40,coh_results[i][2], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.1,0.35,coh_results[i][3], backgroundcolor="#D3DEF1")                  
+            
+
+                plt.gcf().text(0.001,0.85,"sp_peak_time:")
+                plt.gcf().text(0.001,0.80,"sp_peak_freq:")
+                plt.gcf().text(0.001,0.75,"sa_peak_amp:")
+                plt.gcf().text(0.001,0.70,"sa_peak_freq:")
+                plt.gcf().text(0.001,0.65,"sa_fwhm:")
+                #plt.gcf().text(0.001,0.60,"sa_tsi")
+                plt.gcf().text(0.001,0.60,"sa_hwp:")
+                plt.gcf().text(0.001,0.55,"sa_tsi:")
+                plt.gcf().text(0.001,0.50,"coherence_x:")
+                plt.gcf().text(0.001,0.45,"coherence_y:")
+                plt.gcf().text(0.001,0.40,"coherence_z:")
+                plt.gcf().text(0.001,0.35,"coherence_norm:")
+                
+
+                ax_preview.set_title('preview')
+                ax_preview.set_xlabel('sample')
+                
+                graphs = [ax_x, ax_y, ax_z]
+                titles = ["x","y","z"]
+
+                # spectrogram
+                vmin = np.min(res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][0:3])
+                vmax = np.max(res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][0:3])
+                for axis in range(3):
+                    # plot preview
+                    ax_preview.plot(data[file_idx][:,i * self.SENSORS_NUM + axis])
+
+                    # plot spectrogram
+                    im = graphs[axis].pcolormesh(res_lst[file_idx * self.SENSORS_NUM + i]["sp_t"], res_lst[file_idx * self.SENSORS_NUM + i]["sp_f"], res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][axis], cmap="jet", vmin=vmin, vmax=vmax)
+                    graphs[axis].set_xlabel("Time [sec]")
+                    graphs[axis].set_title(titles[axis])
+                ax_preview.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
+                # x軸のみ縦軸のラベルを付ける
+                graphs[0].set_ylabel("Frequency [Hz]")
+                im = ax_norm.pcolormesh(res_lst[file_idx * self.SENSORS_NUM + i]["sp_t"], res_lst[file_idx * self.SENSORS_NUM + i]["sp_f"], res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][3], cmap="jet", vmin=vmin, vmax=vmax)
+                ax_norm.set_title("Norm")
+                ax_norm.set_xlabel("Time [sec]")
+                ax_norm.set_ylabel("Frequency [Hz]")
+                cbar = plt.colorbar(im,ax=ax_norm)
+                cbar.set_label("Amplitude")
+                
+                fig.savefig(os.path.join(self.dir_list[dir_idx], f"{filenames[file_idx]}_sensor{i}_spectrogram.png"))
+
+                ax_norm.clear()
+                ax_x.clear()
+                ax_y.clear()
+                ax_z.clear()
+                cbar.remove()
+
+                # spectral amptitude
+                vmin = np.min(res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][0:3])
+                vmax = np.max(res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][0:3])
+                for axis in range(3):
+                    # plot spectrogram
+                    graphs[axis].set_ylim(0, vmax * 1.2)
+                    graphs[axis].plot(res_lst[file_idx * self.SENSORS_NUM + i]["sa_f"], res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][axis])
+                    graphs[axis].set_xlabel("Frequency [Hz]")
+                    graphs[axis].set_title(titles[axis])
+                # ax_preview.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
+                # x軸のみ縦軸のラベルを付ける
+                graphs[0].set_ylabel("Amplitude")
+                ax_norm.plot(res_lst[file_idx * self.SENSORS_NUM + i]["sa_f"], res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][3])
+                ax_norm.set_title("Norm")
+                ax_norm.set_xlabel("Frequency [Hz]")
+                ax_norm.set_ylabel("Amplitude")
+                
+                fig.savefig(os.path.join(self.dir_list[dir_idx], f"{filenames[file_idx]}_sensor{i}_spectral_amplitude.png"))
+
+                plt.close('all')
         
     def clear_directorynames(self):
         self.infolist_box.delete(1.0, "end")
@@ -700,7 +699,7 @@ class MainApp(tk.Tk):
 
         plt.close("all")
         # return graphs, peak_amp, peak_freq, fwhm, hwp, tsi
-        return specs, peak_amp, peak_freq, fwhm, hwp, tsi, f, t
+        return specs, peak_amp, peak_freq, fwhm, hwp, tsi, f
 
     def full_width_half_maximum(self, x, y):
         """

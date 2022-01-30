@@ -28,19 +28,19 @@
 [o] Spectrogram解析
 [o] Spectral Amplitude解析
 [o] 解析結果の数値を辞書型で格納
-[ ] グラフを書くのに使う値をfigureから配列にする
-[ ] 画像生成関数を呼ぶ
+[o] グラフを書くのに使う値をfigureから配列にする
+[o] 画像生成関数を呼ぶ
 [ ] csv関数を呼ぶ
 [o] 繰り返しの処理
 [o] 終了のポップアップ表示
 
 
 ・画像生成
-[ ] 画面を分割
-[ ] previewのグラフをかく
-[ ] 解析結果のグラフをかく
-[ ] 数値をかく
-[ ] ファイル出力 savefig() 保存名 os.path.join(self.target_dir, d, "filename.png")
+[o] 画面を分割
+[o] previewのグラフをかく
+[o] 解析結果のグラフをかく
+[o] 数値をかく
+[o] ファイル出力 savefig() 保存名 os.path.join(self.target_dir, d, "filename.png")
 
  |  0   | 1  | 2 | 3  |
 ------------------------
