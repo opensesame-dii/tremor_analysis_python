@@ -7,7 +7,7 @@ app.py works for a file or a pair of files. On the other hand, this program, con
 ## how to use
 
 ### launch program
-after doing `setup` and set "current directory" to here, enter following command.
+After doing `conda activation` and setting "current directory" to here, enter following command.
 ```
 python continuous.py
 ```
