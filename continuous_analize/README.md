@@ -19,6 +19,7 @@ csv, xlms, xlsx, are supported.
 One or two file(s) must be placed in each directory.
 Here is example.
 ```
+data-YYYYMMDDhhmm
 ├── sample01
 │   ├── sample01-left.csv
 │   └── sample01-right.csv
