@@ -18,6 +18,19 @@ This program needs conda, which is environment for python.
 conda env create -n tremor -f tremor.yml
 ```
 
+```
+conda create -n tremor python=3.7
+conda activate tremor
+conda install matplotlib=3.1.3
+conda install numpy=1.21.2
+conda install pandas=1.3.5
+conda install tk=8.6.11
+conda install scipy=1.7.3 
+```
+If `Proceed ([y]/n)?` is displayed, enter "y".
+
+If `WARNING: A newer conda version exists.` is displayed, enter `conda update -n base -c defaults conda` then enter install command again
+
 
 ### conda activation
 Enter following command after setup. This command is needed every time you open a terminal.
