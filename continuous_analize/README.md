@@ -32,6 +32,7 @@ data-YYYYMMDDhhmm
 
 ### run
 Click "run" button.
-You can check files which will be analized by clicking "scan" button.
+You can check files which will be analized by clicking "scan" button. 
+When finished, result.csv is created in `data-YYYYMMDDhhmm` and preview picutures are created in each directory.
 
 If there are file placement errors, Dialog shows details.
