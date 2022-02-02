@@ -212,6 +212,10 @@ class MainApp(tk.Tk):
             self.update_directoryname("directories", self.dir_list)
             self.insert_directorynames("no error detected. ready to run.")
         print(self.dir_list)
+        
+        if (len(self.dir_list) == 0):
+            tk.messagebox.showinfo("Info", "directory is empty")
+            return
         return result
 
     def detect_data_warning(self, data):
@@ -227,9 +231,7 @@ class MainApp(tk.Tk):
         # check file error
         if (not self.scan()):
             return
-        if (len(self.dir_list) == 0):
-            tk.messagebox.showinfo("Info", "directory is empty")
-            return
+        
 
         self.insert_directorynames("analize has started")
 
