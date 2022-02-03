@@ -170,10 +170,10 @@ class MainApp(tk.Tk):
         # root.title("tremor")
         self.title("tremor")
 
-        if name == "nt":
-            self.state("zoomed")
-        elif name == "posix":
-            self.attributes("-zoomed", "1")
+        # if name == "nt":
+        #     self.state("zoomed")
+        # elif name == "posix":
+        #     self.attributes("-zoomed", "1")
         self.configure(bg="#778899")
 
         
