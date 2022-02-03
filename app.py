@@ -145,14 +145,10 @@ class MainApp(tk.Tk):
             "sa_fwhm",
             "sa_hwp",
             "sa_tsi",
-            "wt_peak_amplitude",
-            "wt_peak_frequency",
-            "wt_peak_time",
         ]
         self.result_graph_keys = [
             "sa_graph",
             "sp_graph",
-            "wavelet",
         ]
 
         self.figsize_small = (3.3, 2.5)
@@ -314,16 +310,7 @@ class MainApp(tk.Tk):
             self.tsi_txt.insert(tk.END,"None")
             self.tsi_txt.grid(row=7, column=1)
 
-            self.wta_txt = tk.Entry(data_,width=20)
-            self.wta_txt.insert(tk.END,"None")
-            self.wta_txt.grid(row=8, column=1)
-            #self.spa_txt.configure(state="readonly")
-            self.wtf_txt = tk.Entry(data_, width=20)
-            self.wtf_txt.insert(tk.END,"None")
-            self.wtf_txt.grid(row=9, column=1)
-            self.wtt_txt = tk.Entry(data_,width=20)
-            self.wtt_txt.insert(tk.END,"None")
-            self.wtt_txt.grid(row=10, column=1)
+           
 
             spa = ttk.Label(data_, text="Spectrogram Peak Amplitude:")
             spa.grid(row=0, column=0)
@@ -342,12 +329,7 @@ class MainApp(tk.Tk):
             tsi = ttk.Label(data_, text = "Tremor Stability Index: ")
             tsi.grid(row=7, column=0)
 
-            wta = ttk.Label(data_, text="Wavevlet Spectrogram Peak Amplitude:")
-            wta.grid(row=8, column=0)
-            wtf = ttk.Label(data_, text="Wavevlet Spectrogram Peak Frequency(Hz): ")
-            wtf.grid(row=9, column=0)
-            wtt = ttk.Label(data_, text = "Wavevlet Spectrogram Peak Time(s): ")
-            wtt.grid(row=10, column=0)
+            
 
 
 
@@ -459,7 +441,7 @@ class MainApp(tk.Tk):
         self.current_data = 0 # showing data index (0 or 1)
         self.data_preview_fig = [[empty_fig_large for i in range(self.SENSORS_NUM)], [empty_fig_large for i in range(self.SENSORS_NUM)]]
 
-        self.modes = ["Spectral Amplitude", "Spectrogram", "Wavelet Transform"] # あとで修正(wavelet)
+        self.modes = ["Spectral Amplitude", "Spectrogram"] # あとで修正(wavelet)
         self.current_mode = 0
         self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
         self.current_sensor = 0
@@ -589,17 +571,6 @@ class MainApp(tk.Tk):
                         target_data[data_idx], 
                         sensor_idx, 
                         self.data[target_data[data_idx]][:, sensor_idx*3: sensor_idx*3 + 3].T, 
-                        self.sampling_rate, 
-                        self.sampling_rate * self.segment_duration_sec, 
-                        self.filenames[target_data[data_idx]], 
-                        self.sensors[sensor_idx], 
-                        self.frame_range[0], 
-                        self.frame_range[1],
-                    )
-                    self.wavelet_analize(
-                        target_data[data_idx], 
-                        sensor_idx, 
-                        self.data[target_data[data_idx]][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
                         self.sampling_rate, 
                         self.sampling_rate * self.segment_duration_sec, 
                         self.filenames[target_data[data_idx]], 
