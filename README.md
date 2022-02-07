@@ -55,7 +55,14 @@ Enter the following command.
 ```
 conda info -e
 ```
-Then `tremor` environment is displayed, setting up section finished successfully.
+Then you may see the following outputs on your terminal. The outputs might differ slightly based on your environment. If you see a row starting with "tremor", setting up was finished successfully.
+
+```
+# conda environments:
+#
+base                  *  C:\Users\Alice\anaconda3
+tremor                   C:\Users\Alice\anaconda3\envs\tremor
+```
 
 ### Conda activation
 Enter following command after setup. This command is needed every time you open a terminal.
