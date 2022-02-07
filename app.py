@@ -8,6 +8,7 @@ from io import BytesIO
 import matplotlib.pyplot as plt
 from copy import deepcopy
 from sys import exit
+from argparse import ArgumentParser
 
 import tkinter as tk
 from tkinter import ttk
@@ -43,6 +44,7 @@ figsize_big = (12, 3)
 figsize_small = (4, 3)
 figsize_pixel_big = (figsize_big[0] * dpi, figsize_big[1] * dpi)
 figsize_pixel_small = (figsize_small[0] * dpi, figsize_small[1] * dpi)
+
 
 
 
@@ -619,13 +621,19 @@ class MainApp(tk.Tk):
        # elif event.delta < 0:
        #     self.canvas.yview_scroll(1, "units")
 
+    #コマンドライン引数を設定する関数
+    def get_option(self):
+       pass
+        #print(args.encoding)
+
+
     #ファイルを選ぶ関数
     def file_dialog(self, selected):
         ftypes =[('EXCELファイル/CSVファイル', '*.xlsx'),
             ('EXCELファイル/CSVファイル', '*.xlsm'),
             ('EXCELファイル/CSVファイル', '*.csv')]
         fname = filedialog.askopenfilename(filetypes=ftypes)
-        
+    
         if (fname == "" or isinstance(fname, tuple)):
             print("no file selected")
             return
@@ -636,8 +644,19 @@ class MainApp(tk.Tk):
         if (self.filenames[selected] != fname):
             plt.close("all")
             self.filenames[selected] = fname
+            
+            #オプション関数取得
+            parser =ArgumentParser()
+            parser.add_argument("--encoding")
+            parser.add_argument("--row_start",type=int)
+            parser.add_argument("--column_start",type=int)
+            parser.add_argument("--sensors_num",type=int)
+            
+            args = parser.parse_args()
+
+
             # Optimize to motion sensor by Logical Product Inc
-            df = pd.read_csv(fname, header=None, skiprows=10, index_col=0, encoding="shift jis")
+            df = pd.read_csv(fname, header=None, skiprows=args.row_start - 1, index_col=0, encoding=args.encoding)
             npdata = np.array(df.values.flatten())
             self.data[selected] = np.reshape(npdata,(df.shape[0],df.shape[1]))
 
