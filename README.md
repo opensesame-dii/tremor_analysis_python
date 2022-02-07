@@ -65,9 +65,15 @@ tremor                   C:\Users\Alice\anaconda3\envs\tremor
 ```
 
 ### Conda activation
-Enter following command after setup. This command is needed every time you open a terminal.
+Enter following command after setup. This command is needed every time you open a terminal. 
 ```
 conda activate tremor
+```
+
+The new row starting with "(tremor)" will appear. The name of the environment will be displayed in parentheses. Here is example.
+```
+(tremor) C:\Users\Alice>    <- windows
+(tremor) /home/Alice    <- mac
 ```
 
 ### Launch program
