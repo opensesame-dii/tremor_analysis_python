@@ -9,18 +9,29 @@ This program needs conda, which is environment for python.
 1. Launch the installer and follow the instructions. I recommend eneble `Add Anaconda3 to my PATH environment variable` and `Resister Anaconda3 as my default Python X.X` in `Advanced Options` section if you are using Windows.
 
 
-### seting up
+### seting up of conda environment for tremor analysis
 1. Download this repository by `git clone` or clicking `"Code" button > Download ZIP` in this page. If you get program the latter, unzip the file.
 1. Launch terminal(Windows: command prompt, Mac: Terminal)
 1. Set "current directory" to the directory containing "app.py", "tremor.yml", and so on. Operation hints are here. [for Windows](https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/), [for Mac](https://www.earthdatascience.org/courses/intro-to-earth-data-science/open-reproducible-science/bash/bash-commands-to-manage-directories-files/)
-1. Enter the following command(replace {YOUR_OPERATING_SYSTEM} with mac, windows or ubuntu).
+1. Enter the following command(replace {YOUR_OPERATING_SYSTEM} with mac, windows or ubuntu). For example, if you use windows. `conda env create -n tremor -f tremor_windows.yml`
 ```
 conda env create -n tremor -f tremor_{YOUR_OPERATING_SYSTEM}.yml
-
-example: conda env create -n tremor -f tremor_windows.yml
+```
+If this process finished successfully, below will be displayed.
+```
+done
+#
+# To activate this environment, use
+#
+#     $ conda activate tremor
+#
+# To deactivate an active environment, use
+#
+#     $ conda deactivate
 ```
 
-If errors occur or your operating system is not in above list, enter the followings step by step.
+
+If errors occur or your operating system is not in above list, enter the following commands line by line.
 
 
 ```
