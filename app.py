@@ -653,12 +653,17 @@ class MainApp(tk.Tk):
             parser.add_argument("--sensors_num",type=int)
             
             args = parser.parse_args()
-
+            
+            # テスト用
+            print(args)
 
             # Optimize to motion sensor by Logical Product Inc
             df = pd.read_csv(fname, header=None, skiprows=args.row_start - 1, index_col=0, encoding=args.encoding)
             npdata = np.array(df.values.flatten())
             self.data[selected] = np.reshape(npdata,(df.shape[0],df.shape[1]))
+
+            # テスト用
+            print(self.data[selected].shape)
 
             # warning to go off the scale
             off_scale=[]
