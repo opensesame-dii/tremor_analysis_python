@@ -13,7 +13,7 @@ This program needs conda, which is environment for python.
 1. Download this repository by `git clone` or clicking `"Code" button > Download ZIP` in this page. If you get program the latter, unzip the file.
 1. Launch terminal(Windows: command prompt, Mac: Terminal)
 1. Set "current directory" to the directory containing "app.py", "tremor.yml", and so on. Operation hints are here. [for Windows](https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/), [for Mac](https://www.earthdatascience.org/courses/intro-to-earth-data-science/open-reproducible-science/bash/bash-commands-to-manage-directories-files/)
-1. Enter the following command(replace {YOUR_OPERATING_SYSTEM} with mac, windows or ubuntu). For example, if you use windows. `conda env create -n tremor -f tremor_windows.yml`
+1. Enter the following command(replace {YOUR_OPERATING_SYSTEM} with mac, windows or ubuntu). For example, if you use windows, `conda env create -n tremor -f tremor_windows.yml`
 ```
 conda env create -n tremor -f tremor_{YOUR_OPERATING_SYSTEM}.yml
 ```
@@ -45,10 +45,10 @@ conda install tk=8.6.11
 conda install scipy=1.7.3 
 ```
 
-hints
-- `Proceed ([y]/n)?` is displayed, enter "y".
+Hints
+- If `Proceed ([y]/n)?` is displayed, enter "y".
 
-- `WARNING: A newer conda version exists.` is displayed, enter `conda update -n base -c defaults conda` then enter install command again
+- If `WARNING: A newer conda version exists.` is displayed, enter `conda update -n base -c defaults conda` then enter install command again.
 
 ### Confirm
 Enter the following command.
