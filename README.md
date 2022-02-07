@@ -1,15 +1,15 @@
-# tremor analysis
+# Tremor Analysis
 
-## how to use
+## How to use
 
-### conda instllation 
+### Conda instllation 
 This program needs conda, which is environment for python.  
 
 1. Download the installer from [here](https://www.anaconda.com/products/individual)
 1. Launch the installer and follow the instructions. I recommend eneble `Add Anaconda3 to my PATH environment variable` and `Resister Anaconda3 as my default Python X.X` in `Advanced Options` section if you are using Windows.
 
 
-### seting up of conda environment for tremor analysis
+### Seting up of conda environment for tremor analysis
 1. Download this repository by `git clone` or clicking `"Code" button > Download ZIP` in this page. If you get program the latter, unzip the file.
 1. Launch terminal(Windows: command prompt, Mac: Terminal)
 1. Set "current directory" to the directory containing "app.py", "tremor.yml", and so on. Operation hints are here. [for Windows](https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/), [for Mac](https://www.earthdatascience.org/courses/intro-to-earth-data-science/open-reproducible-science/bash/bash-commands-to-manage-directories-files/)
@@ -32,6 +32,7 @@ done
 
 
 If errors occur or your operating system is not in above list, enter the following commands line by line.
+You may need to wait for a few seconds before executing the next step.
 
 
 ```
@@ -49,26 +50,26 @@ hints
 
 - `WARNING: A newer conda version exists.` is displayed, enter `conda update -n base -c defaults conda` then enter install command again
 
-### confirm
+### Confirm
 Enter the following command.
 ```
 conda info -e
 ```
 Then `tremor` environment is displayed, setting up section finished successfully.
 
-### conda activation
+### Conda activation
 Enter following command after setup. This command is needed every time you open a terminal.
 ```
 conda activate tremor
 ```
 
-### launch program
+### Launch program
 After set "current directory" to this repository by using "cd" command, enter the following command.
 ```
 python app.py
 ```
 
-## supported file format
+## Supported file format
 csv, xlms, xlsx files are supported. Files must follow these rules.
 - data series along with collumn
 - 3-dimensional data
