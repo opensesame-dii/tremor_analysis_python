@@ -662,6 +662,9 @@ class MainApp(tk.Tk):
             npdata = np.array(df.values.flatten())
             self.data[selected] = np.reshape(npdata,(df.shape[0],df.shape[1]))
 
+            # テスト用
+            print(self.data[selected].shape)
+
             # warning to go off the scale
             off_scale=[]
             for i in range(self.data[selected].shape[1]):
@@ -1138,25 +1141,22 @@ class MainApp(tk.Tk):
         # print(peak_idx)
         lower = peak_idx
         upper = peak_idx
+        d = np.abs(x[1] - x[0])
 
-        ###########################
-        # spline 補間 を使いたいか?
-
-        while (lower >= 0 and y_ndarray[lower] > peak_val_half):
+        while (lower > 0 and y_ndarray[lower] > peak_val_half):
             lower -= 1
-        if (y_ndarray[lower] != peak_val_half):
-            lower_v = (x[lower] + x[lower + 1]) / 2 # ピークの半分を跨いだ場合は中央値を取る
+        if (y_ndarray[lower] != peak_val_half and lower != 0):
+            lower_v = x[lower] + d * (peak_val_half - y_ndarray[lower]) / (y_ndarray[lower + 1] - y_ndarray[lower]) # linear interpolation
         else:
             lower_v = x[lower]
     
         while (upper < length - 1 and y_ndarray[upper] > peak_val_half):
             upper += 1    
-        if (y_ndarray[upper] != peak_val_half):
-            upper_v = (x[upper] + x[upper - 1]) / 2
+        if (y_ndarray[upper] != peak_val_half and upper != length - 1):
+            upper_v = x[upper] - d * (peak_val_half - y_ndarray[upper]) / (y_ndarray[upper -1] - y_ndarray[upper]) # linear interpolation
         else:
             upper_v = x[upper]
         # hwp
-        d = x[1] - x[0]
         hwp = np.sum(y_ndarray[lower: upper]) * d
 
         return (lower, upper, lower_v, upper_v, hwp)
