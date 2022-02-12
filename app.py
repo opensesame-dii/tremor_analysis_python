@@ -128,9 +128,18 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        #オプション関数取得
+        parser =ArgumentParser()
+        parser.add_argument("--encoding",default="utf-8")
+        parser.add_argument("--row_start",type=int,default=1)
+        parser.add_argument("--column_start",type=int,default=1)
+        parser.add_argument("--sensors_num",type=int,default=3)
+            
+        self.args = parser.parse_args()
+
         # number of sensor
         # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
-        self.SENSORS_NUM = 3
+        self.SENSORS_NUM = self.args.sensors_num
 
         self.sampling_rate = 200
         self.segment_duration_sec = 5
@@ -644,19 +653,12 @@ class MainApp(tk.Tk):
         if (self.filenames[selected] != fname):
             plt.close("all")
             self.filenames[selected] = fname
-            
-            #オプション関数取得
-            parser =ArgumentParser()
-            parser.add_argument("--encoding")
-            parser.add_argument("--row_start",type=int)
-            parser.add_argument("--column_start",type=int)
-            parser.add_argument("--sensors_num",type=int)
-            
-            args = parser.parse_args()
-
 
             # Optimize to motion sensor by Logical Product Inc
-            df = pd.read_csv(fname, header=None, skiprows=args.row_start - 1, index_col=0, encoding=args.encoding)
+            
+            df = pd.read_csv(fname, header=None, skiprows=self.args.row_start - 1, usecols=[i + self.args.column_start -1 for i in range(self.args.sensors_num * 3)],encoding=self.args.encoding)
+            print(df)
+            
             npdata = np.array(df.values.flatten())
             self.data[selected] = np.reshape(npdata,(df.shape[0],df.shape[1]))
 
