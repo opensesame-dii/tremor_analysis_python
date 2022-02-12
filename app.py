@@ -656,9 +656,7 @@ class MainApp(tk.Tk):
 
             # Optimize to motion sensor by Logical Product Inc
             
-            df = pd.read_csv(fname, header=None, skiprows=self.args.row_start - 1, usecols=[i + self.args.column_start -1 for i in range(self.args.sensors_num * 3)],encoding=self.args.encoding)
-            print(df)
-            
+            df = pd.read_csv(fname, header=None, skiprows=self.args.row_start - 1, usecols=[i + self.args.column_start -1 for i in range(self.args.sensors_num * 3)],encoding=self.args.encoding)    
             npdata = np.array(df.values.flatten())
             self.data[selected] = np.reshape(npdata,(df.shape[0],df.shape[1]))
 
