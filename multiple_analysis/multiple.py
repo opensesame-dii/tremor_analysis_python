@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 from copy import copy
 from sys import exit
+from argparse import ArgumentParser
 
 import datetime
 
@@ -108,6 +109,15 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
+
+        #オプション関数取得
+        parser =ArgumentParser()
+        parser.add_argument("--encoding",default="utf-8")
+        parser.add_argument("--row_start",type=int,default=1)
+        parser.add_argument("--column_start",type=int,default=1)
+        parser.add_argument("--sensors_num",type=int,default=3)
+            
+        self.args = parser.parse_args()
         # assign YYYYMMDDhhmm when app launched to analize target directory name
         self.launched_str = datetime.datetime.now().strftime("%Y%m%d%H%M")
         self.python_dir = os.path.dirname(os.path.abspath(__file__))
@@ -120,7 +130,7 @@ class MainApp(tk.Tk):
         print(self.target_dir)
         # number of sensor
         # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
-        self.SENSORS_NUM = 3
+        self.SENSORS_NUM = self.args.sensors_num
 
         self.sampling_rate = 200
         self.segment_duration_sec = 5
@@ -267,7 +277,7 @@ class MainApp(tk.Tk):
 
             for file_idx in range(len(filenames)):
                 df = pd.read_csv(os.path.join(self.target_dir, self.dir_list[dir_idx], filenames[file_idx]), 
-                    header=None, skiprows=10, index_col=0, encoding="shift jis")
+                    header=None, skiprows=self.args.row_start - 1,  usecols=[i + self.args.column_start -1 for i in range(self.args.sensors_num * 3)], encoding=self.args.encoding)
                 npdata = np.array(df.values.flatten())
                 data.append(np.reshape(npdata,(df.shape[0],df.shape[1])))
                 

@@ -1,5 +1,8 @@
 # Tremor Analysis
 
+## About this  
+There are two programs, app.py and multiple.py. app.py works on one file or pair of files, while multiple.py works on all files at once and exports the results. The following is mainly an explanation of app.py, so if you are using multiple.py, please refer to README.md in the multiple_analysis directory after you are done with `conda activation`.
+
 ## How to use
 
 ### Conda instllation 
@@ -77,10 +80,30 @@ The new row starting with "(tremor)" will appear. The name of the environment wi
 ```
 
 ### Launch program
-After set "current directory" to this repository by using "cd" command, enter the following command.
+After set "current directory" to this repository by using "cd" command, enter the following command. 
 ```
-python app.py
+python app.py --row_start xx --column_start xx --sensors_num xx --encoding xx
+```  
+Please fill in the "xx" according to the format of your file according to the following rules.  
+- --row_start : enter the first row
+- --column_start: enter the first column
+- --sensors_num: enter the number of sensors used in the experiment.
+- --encoding: enter the encoding of the file you want to analyze.  
+
+For example, in this file, the data starts with 11 rows and 2 columns, has 3 sensors, and the encoding is Shift_jis, so please enter the following command.  
+
 ```
+python app.py --row_start 11 --column_start 2 --sensors_num 3 --encoding shift_jis
+```
+
+### Operation  
+1.  Press the browser button in Data I and select the file to be analyzed.
+1. After a few moments, the graph and numbers will appear in a window.
+1. You can also press the browser button on Data2 to load the other data.  
+
+Switch between Data1 and Data2 in now-showing.  
+Select the mode of analysis in the Analysis section and the sensor to be displayed in the Sensor section.For more information about modes, click here.
+
 
 ## Supported file format
 csv, xlms, xlsx files are supported. Files must follow these rules.
