@@ -85,10 +85,10 @@ After set "current directory" to this repository by using "cd" command, enter th
 python app.py --row_start xx --column_start xx --sensors_num xx --encoding xx
 ```  
 Please fill in the "xx" according to the format of your file according to the following rules.  
-- --row_start : enter the first row
-- --column_start: enter the first column
-- --sensors_num: enter the number of sensors used in the experiment.
-- --encoding: enter the encoding of the file you want to analyze.  
+- `--row_start` : enter the first row
+- `--column_start` : enter the first column
+- `--sensors_num` : enter the number of sensors used in the experiment.
+- `--encoding` : enter the encoding of the file you want to analyze.  
 
 For example, in this file, the data starts with 11 rows and 2 columns, has 3 sensors, and the encoding is Shift_jis, so please enter the following command.  
 
@@ -99,10 +99,11 @@ python app.py --row_start 11 --column_start 2 --sensors_num 3 --encoding shift_j
 ### Operation  
 1.  Press the browser button in Data I and select the file to be analyzed.
 1. After a few moments, the graph and numbers will appear in a window.
-1. You can also press the browser button on Data2 to load the other data.  
+1. You can also press the `Browse` button on Data2 to load the other data.  
 
 Switch between Data1 and Data2 in now-showing.  
-Select the mode of analysis in the Analysis section and the sensor to be displayed in the Sensor section.For more information about modes, click here.
+Select the mode of analysis in the Analysis section and the sensor to be displayed in the Sensor section.
+For more information about modes, click here.
 
 
 ## Supported file format
@@ -114,12 +115,18 @@ csv, xlms, xlsx files are supported. Files must follow these rules.
 This program provides two modes of graph export.
 
 - Spectral Amplitude   
-This is based on Fourier Transform using [scipy.signal.spectrogram(complex mode)](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html).
+This is based on Fourier Transform using [scipy.signal.spectrogram(complex mode)](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html).  
+Fourier Transform is a major method of frequency analysis.
+Below is Fourier Transform equation.  
+![](https://latex.codecogs.com/gif.image?%5Cdpi%7B110%7D%20%5Cbg_white%20X_%7B%5Comega%7D%20=%20%5Cint_%7B-%20%5Cinfty%7D%5E%7B%5Cinfty%7D%20x(t)%20e%5E%7B-i%5Comega%20t%7D%20dt)  
+Omega is a normalized frequency, so multiplying by sampling rate, we can obtain the spectra in each frequency.
+We focused on the difference in time axis, so we use STFT(short-time Fourier Transform).
+In this method, segment the data series and perform a Fourier transform on each of them.  
 Data series are passed to scipy.signal.spectrogram linearly detrended.
 Hamming Window is used as window function, `nperseg`(points in Short-Time Fourier Transform segment) is the product of `segment duration` and `sampling rate`, `noverlap` is 75% of `nperseg`, and `nfft` is 2^12.
 Then, Spectral Amplitude is calculated as shown below where `n` is the number of samples in the time axis and `X` is complex spectrum.
-This means that Spectral Amplitude is average of the amplitude of each frequency on the time axis.
-![](https://latex.codecogs.com/svg.image?Spectral%20Amplitude_%7Bf%7D%20=%20%5Cfrac%7B%5Csum_%7Bt%7D%5E%7B%7D%20abs(X_%7Bt,%20f%7D)%7D%7Bn%7D)
+This means that Spectral Amplitude is average of the amplitude of each frequency on the time axis.  
+![](https://latex.codecogs.com/gif.image?%5Cdpi%7B110%7D%20%5Cbg_white%20Spectral%20Amplitude_%7Bf%7D%20=%20%5Cfrac%7B%5Csum_%7Bt%7D%5E%7B%7D%20abs(X_%7Bt,%20f%7D)%7D%7Bn%7D)
 
 
 
@@ -128,7 +135,7 @@ This is based on Fourier Transform using [scipy.signal.spectrogram(magnitude mod
 Data series are passed to scipy.signal.spectrogram linearly detrended.
 Hamming Window is used as window function, `nperseg`(points in Short-Time Fourier Transform segment) is the product of `segment duration` and `sampling rate`, and other parameters (`noverlap, nfft`) are determined in accordance with Elble & McNames [1].
 `noverlap, nfft` are obtained by the following equation(N: number of data points).  
-![](https://latex.codecogs.com/svg.image?%5C%5CL%20=%20min(N,%20nperseg)%20%5C%5CnTimes%20Spectrogram%20=%20500%20%5C%5Cnoverlap%20=%20max(1,%20ceil(%5Cfrac%7B2L%20-%20N%7D%7BnTimesSpectrogram%20-%201%7D))%20%5C%5Cnfft%20=%202%5E%7B12%7D)  
+![](https://latex.codecogs.com/gif.image?%5Cbg_white%20%5C%5CL%20=%20min(N,%20nperseg)%20%5C%5CnTimes%20Spectrogram%20=%20500%20%5C%5Cnoverlap%20=%20max(1,%20ceil(%5Cfrac%7B2L%20-%20N%7D%7BnTimesSpectrogram%20-%201%7D))%20%5C%5Cnfft%20=%202%5E%7B12%7D)  
 Then, Spectral Amplitude is calculated by time avarage of spectrogram in each frequency.  
 
 
@@ -170,9 +177,13 @@ Each frequency is reciprocal of the period of each oscillation.
 
 
 - FT(Fourier Transforms) coherence integral  
-Coherence of each frequency is calculated by [matplotlib.mlab.cohere](https://matplotlib.org/stable/api/mlab_api.html#matplotlib.mlab.cohere). FT coherence 
-is the integral value at the frequency at which the coherence exceeds a thresold.
-We use 95% confidence interval as a thresold. [2, 3]  
+Coherence is the ratio of auto spectra and cross spectra.
+Coherence of each frequency is calculated by [matplotlib.mlab.cohere](https://matplotlib.org/stable/api/mlab_api.html#matplotlib.mlab.cohere).
+In this program, `nfft` is 2^10 and `noverlap` is 50% of `nfft`(2^9).  
+![](https://latex.codecogs.com/gif.image?%5Cdpi%7B110%7D%20%5Cbg_white%20Coherence(f)%20=%20%5Cfrac%7B%7C(X_%7Bf%7D%20Y_%7Bf%7D%5E%7B*%7D)%7C%5E2%7D%7B(X_%7Bf%7D%20X_%7Bf%7D%5E%7B*%7D)(Y_%7Bf%7D%20Y_%7Bf%7D%5E%7B*%7D)%7D)  
+FT coherence is the integral value at the frequency at which the coherence exceeds a thresold.
+We use 95% confidence interval(CI) as a thresold. [2, 3]  
+![](https://latex.codecogs.com/gif.image?%5Cdpi%7B110%7D%20%5Cbg_white%20%5C%5C%20CI%20=%201%20-%200.05%5E%7B%5Cfrac%7B1%7D%7B(N%20-%20noverlap)/(nfft-noverlap)-1%7D%7D%20%5C%5C%20FT%20%20coherence%5C;%20integral%20=%20%5Cint_%7Bf%5Cin%20coherence(f)%3ECI%7D%5E%7B%7D%20coherence%20%5C;%20df)  
 This value will only be calculated when data are imported in pairs.
 
 # References
