@@ -105,7 +105,7 @@ You can also start it with `python app.py` without any configuration. In this ca
 
 Switch between Data1 and Data2 in now-showing.  
 Select the mode of analysis in the Analysis section and the sensor to be displayed in the Sensor section.
-For more information about modes, [click here](## Modes).
+For more information about modes, [click here](##Modes).
 
 
 ## Supported file format
