@@ -80,32 +80,34 @@ The new row starting with "(tremor)" will appear. The name of the environment wi
 ```
 
 ### Launch program
-After set "current directory" to this repository by using "cd" command, enter the following command. 
+After set "current directory" to this repository by using "cd" command, enter the following command.
 ```
 python app.py --row_start xx --column_start xx --sensors_num xx --encoding xx
-```  
-Please fill in the "xx" according to the format of your file according to the following rules.  
-- `--row_start` : enter the first row
-- `--column_start` : enter the first column
-- `--sensors_num` : enter the number of sensors used in the experiment.
-- `--encoding` : enter the encoding of the file you want to analyze.  
+```
+Please fill in the "xx"(command line arguments) according to the format of your file according to the following rules.
+Any arguments can be omitted.
+For example, `python app.py --row_start xx --sensors_num xx`.
+In this case, default values are automatically set to each omitted arguments.
+- `--row_start` (default: 1) : enter the first row
+- `--column_start` (default: 1) : enter the first column
+- `--sensors_num` (default: 3) : enter the number of sensors used in the experiment.
+- `--encoding` (default: utf-8) : enter the encoding of the file you want to analyze.
 
-For example, [in this file](./analysis_samples), the data starts with 11 rows and 2 columns, has 3 sensors, and the encoding is Shift_jis, so please enter the following command.  
+For example, [in this file](./analysis_samples), the data starts with 11 rows and 2 columns, has 3 sensors, and the encoding is Shift_jis, so please enter the following command.
 
 ```
 python app.py --row_start 11 --column_start 2 --sensors_num 3 --encoding shift_jis
-```  
-You can also start it with `python app.py` without any configuration. In this case, it will automatically be set to `python app.py--row_start 1 --column_start 1 --sensors_num 3 --encoding utf-8`.
+```
 
 
 ### Operation  
 1.  Press the browser button in Data I and select the file to be analyzed.
 1. After a few moments, the graph and numbers will appear in a window.
-1. You can also press the `Browse` button on Data2 to load the other data.  
+1. You can also press the `Browse` button on Data2 to load the other data.
 
 Switch between Data1 and Data2 in now-showing.  
 Select the mode of analysis in the Analysis section and the sensor to be displayed in the Sensor section.
-For more information about modes, [click here](#Modes).
+For more information about modes, see [Modes](#Modes).
 
 
 ## Supported file format
