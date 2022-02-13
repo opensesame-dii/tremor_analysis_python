@@ -84,6 +84,75 @@ python app.py
 
 ## Supported file format
 csv, xlms, xlsx files are supported. Files must follow these rules.
-- data series along with collumn
-- 3-dimensional data
-- data cell starts with 1A(not yet implemented)
+- data series along with column.
+- data from 3-dimensional sensor. any number of sensors can be used. (column number must be a multiple of 3)
+
+## Modes
+This program provides two modes of graph export.
+
+- Spectral Amplitude   
+This is based on Fourier Transform using [scipy.signal.spectrogram(complex mode)](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html).
+Data series are passed to scipy.signal.spectrogram linearly detrended.
+Hamming Window is used as window function, `nperseg`(points in Short-Time Fourier Transform segment) is the product of `segment duration` and `sampling rate`, `noverlap` is 75% of `nperseg`, and `nfft` is 2^12.
+Then, Spectral Amplitude is calculated as shown below where `n` is the number of samples in the time axis and `X` is complex spectrum.
+This means that Spectral Amplitude is average of the amplitude of each frequency on the time axis.
+![](https://latex.codecogs.com/svg.image?Spectral%20Amplitude_%7Bf%7D%20=%20%5Cfrac%7B%5Csum_%7Bt%7D%5E%7B%7D%20abs(X_%7Bt,%20f%7D)%7D%7Bn%7D)
+
+
+
+- Spectrogram  
+This is based on Fourier Transform using [scipy.signal.spectrogram(magnitude mode)](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html).
+Data series are passed to scipy.signal.spectrogram linearly detrended.
+Hamming Window is used as window function, `nperseg`(points in Short-Time Fourier Transform segment) is the product of `segment duration` and `sampling rate`, and other parameters (`noverlap, nfft`) are determined in accordance with Elble & McNames [1].
+`noverlap, nfft` are obtained by the following equation(N: number of data points).  
+![](https://latex.codecogs.com/svg.image?%5C%5CL%20=%20min(N,%20nperseg)%20%5C%5CnTimes%20Spectrogram%20=%20500%20%5C%5Cnoverlap%20=%20max(1,%20ceil(%5Cfrac%7B2L%20-%20N%7D%7BnTimesSpectrogram%20-%201%7D))%20%5C%5Cnfft%20=%202%5E%7B12%7D)  
+Then, Spectral Amplitude is calculated by time avarage of spectrogram in each frequency.  
+
+
+
+## Calculated values
+
+-  Spectrogram Peak Amplitude(sp_peak_amp)  
+Maximum value in `Spectrogram` mode.
+
+
+- Spectrogram Peak Frequency(sp_peak_freq)  
+Frequency at which the amplitude is maximum in `Spectrogram` mode.
+
+
+- Spectrogram Peak Time(sp_peak_time)  
+Time at which the amplitude is maximum in `Spectrogram` mode.
+
+
+- Whole Peak Amplitude(sa_peak_amp)  
+Maximum value in `Spectral Amplitude` mode.
+
+
+- Whole Peak Frequency(sa_peak_freq)  
+Frequency at which the amplitude is maximum in `Spectral Amplitude` mode.
+
+
+- Full-width Half Maximum(sa_fwhm)  
+Frequency range at which frequency exceed half of the maximum value.
+Linear interpolation is used.
+
+
+- Half-width Power(sa_hwp)  
+Integral value at which frequency exceed half of the maximum value.
+
+
+- Tremor Stability Index(sa_tsi)  
+Quartile range of difference in frequency for each tremor.
+Each frequency is reciprocal of the period of each oscillation.
+
+
+- FT(Fourier Transforms) coherence integral  
+Coherence of each frequency is calculated by [matplotlib.mlab.cohere](https://matplotlib.org/stable/api/mlab_api.html#matplotlib.mlab.cohere). FT coherence 
+is the integral value at the frequency at which the coherence exceeds a thresold.
+We use 95% confidence interval as a thresold. [2, 3]  
+This value will only be calculated when data are imported in pairs.
+
+# References
+1. Rodger J. Elble & James McNames. Using Portable Transducers to Measure Tremor Severity https://tremorjournal.org/article/10.5334/tohm.320/
+1. Anne Sofie Bøgh Malling, Bo Mohr Morberg, Lene Wermuth, Ole Gredal, Per Bech & Bente Rona Jensen. The effect of 8 weeks of treatment with transcranial pulsed electromagnetic fields on hand tremor and inter-hand coherence in persons with Parkinson’s disease https://jneuroengrehab.biomedcentral.com/articles/10.1186/s12984-019-0491-2
+1. K Terry & L Griffin. How computational technique and spike train properties affect coherence detection https://pubmed.ncbi.nlm.nih.gov/17976736/
