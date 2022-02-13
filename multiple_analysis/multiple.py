@@ -520,6 +520,7 @@ class MainApp(tk.Tk):
         self.buttonframe = ttk.Frame(self)
         self.filelistframe = ttk.Frame(self)
         self.progress_frame = ttk.Frame(self.buttonframe)
+        self.setting_frame = ttk.Frame(self)
 
         self.scan_button = ttk.Button(self.buttonframe,text="scan",command=lambda: self.scan()) 
         self.run_button = ttk.Button(self.buttonframe,text="run",command=lambda: self.run())
@@ -530,6 +531,19 @@ class MainApp(tk.Tk):
         self.per = ttk.Label(self.progress_frame,text = "progress: ")
         self.directoryname = ttk.Label(self.filelistframe,text="解析対象のディレクトリ: " + "data " +self.launched_str)
 
+        self.seg = ttk.Label(self.setting_frame, text="Segment duration(s):")
+        self.seg.grid(row=0, column=0)
+        self.samp = ttk.Label(self.setting_frame, text="Sampling rate(Hz):")
+        self.samp.grid(row=1, column=0)
+        tcl_can_enter_as_number = self.register(self.can_enter_as_number)
+        self.seg_txt = tk.Entry(self.setting_frame,width=20,validate="key", vcmd=(tcl_can_enter_as_number, "%S"))
+        self.seg_txt.grid(row=0, column=1)
+        self.samp_txt = tk.Entry(self.setting_frame, width=20,validate="key", vcmd=(tcl_can_enter_as_number, "%S"))
+        self.samp_txt.grid(row=1, column=1)
+        self.apply_button = ttk.Button(self.setting_frame, text="Apply")
+        self.apply_button.bind("<ButtonPress>", self.onchange_settings)
+        self.apply_button.grid(row=3, column=0)
+
         self.buttonframe.grid(row=0,column=0)
         self.filelistframe.grid(row=0,column=1)
         self.scan_button.grid(row=0,column=0)
@@ -539,6 +553,12 @@ class MainApp(tk.Tk):
         self.progress_frame.grid(row=2,column=0)
         self.progress_bar.grid(row=2,column=1)
         self.per.grid(row=2,column=0)
+        self.setting_frame.grid(row=3,column=0)
+
+    def onchange_settings(self, event):
+        self.segment_duration_sec = int(self.seg_txt.get())
+        self.sampling_rate = int(self.samp_txt.get())
+        self.gui_update(file_update=None, settings_changed=True, recalculation=True, change_target=False)
 
     def app_exit(self):
         plt.close('all')

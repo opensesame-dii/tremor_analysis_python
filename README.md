@@ -90,11 +90,13 @@ Please fill in the "xx" according to the format of your file according to the fo
 - --sensors_num: enter the number of sensors used in the experiment.
 - --encoding: enter the encoding of the file you want to analyze.  
 
-For example, in this file, the data starts with 11 rows and 2 columns, has 3 sensors, and the encoding is Shift_jis, so please enter the following command.  
+For example, [in this file](./analysis_samples), the data starts with 11 rows and 2 columns, has 3 sensors, and the encoding is Shift_jis, so please enter the following command.  
 
 ```
 python app.py --row_start 11 --column_start 2 --sensors_num 3 --encoding shift_jis
-```
+```  
+You can also start it with `python app.py` without any configuration. In this case, it will automatically be set to `python app.py--row_start 1 --column_start 1 --sensors_num 3 --encoding utf-8`.
+
 
 ### Operation  
 1.  Press the browser button in Data I and select the file to be analyzed.
