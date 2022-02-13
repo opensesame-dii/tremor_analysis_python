@@ -562,6 +562,88 @@ class MainApp(tk.Tk):
         self.segment_duration_sec = int(self.seg_txt.get())
         self.sampling_rate = int(self.samp_txt.get())
         self.gui_update(file_update=None, settings_changed=True, recalculation=True, change_target=False)
+    
+    def can_enter_as_number(self, diff):
+        if (diff == "-" or diff.encode('utf-8').isdigit() or str((int(diff)*-1)).encode('utf-8').isdigit()):
+            # 妥当（半角数字である）の場合はTrueを返却
+            return True
+        # 妥当でない（半角数字でない）場合はFalseを返却
+        return False
+    def gui_update(self, file_update=None, settings_changed=False, recalculation=False, change_target=False):
+            #self.change_progress("00")
+            if (recalculation):
+                if (self.data[0] is not None and self.data[1] is not None):
+                    for sensor_idx in range(self.SENSORS_NUM):
+                        for axis_idx in range(3):
+                            self.ft_coherence(
+                                sensor_idx, 
+                                axis_idx, 
+                                self.data[0][:, 3 * sensor_idx + axis_idx], 
+                                self.data[1][:, 3 * sensor_idx + axis_idx], 
+                                self.sampling_rate, 
+                                #self.frame_range[0], 
+                                #self.frame_range[1],
+                            )
+                        self.ft_coherence(
+                            sensor_idx, 
+                            3, 
+                            np.linalg.norm(self.data[0][:, 3 * sensor_idx: 3 * sensor_idx + 3], axis=1),
+                            np.linalg.norm(self.data[1][:, 3 * sensor_idx: 3 * sensor_idx + 3], axis=1),
+                            self.sampling_rate, 
+                            #self.frame_range[0], 
+                            #self.frame_range[1],
+                        )
+                        # self.wt_coherence(
+                        #     self.data[0][:, 3 * sensor_idx : 3 * (sensor_idx + 1)].T,
+                        #     self.data[1][:, 3 * sensor_idx : 3 * (sensor_idx + 1)].T,
+                        #     self.sampling_rate, 
+                        #     self.frame_range[0], 
+                        #     self.frame_range[1],
+                        # )
+                    pass
+                
+                target_data = []
+                if (file_update is None and not settings_changed):
+                    target_data.append(0)
+                    target_data.append(1)
+                elif (settings_changed):
+                    for i in range(2):
+                        if (self.data[i] is not None):
+                            target_data.append(i)
+                else:
+                    target_data.append(file_update)
+                for data_idx in range(len(target_data)):
+                    for sensor_idx in range(self.SENSORS_NUM):
+                        progress = (data_idx * self.SENSORS_NUM + sensor_idx) * 100 // (self.SENSORS_NUM * len(target_data))
+                        self.change_progress(str(progress))
+                        self.spectrogram_analize(
+                            target_data[data_idx], 
+                            sensor_idx, 
+                            self.data[target_data[data_idx]][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
+                            self.sampling_rate, 
+                            self.sampling_rate * self.segment_duration_sec, 
+                            self.filenames[target_data[data_idx]], 
+                            self.sensors[sensor_idx], 
+                            self.frame_range[0], 
+                            self.frame_range[1],
+                        )
+                        self.power_density_analize(
+                            target_data[data_idx], 
+                            sensor_idx, 
+                            self.data[target_data[data_idx]][:, sensor_idx*3: sensor_idx*3 + 3].T, 
+                            self.sampling_rate, 
+                            self.sampling_rate * self.segment_duration_sec, 
+                            self.filenames[target_data[data_idx]], 
+                            self.sensors[sensor_idx], 
+                            self.frame_range[0], 
+                            self.frame_range[1],
+                        )
+                change_target = True
+
+            if (change_target):
+                self.update_all_figure()
+            self.change_progress("--")
+
 
     def app_exit(self):
         plt.close('all')
