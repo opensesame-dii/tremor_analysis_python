@@ -38,7 +38,7 @@ use('TkAgg')
 plt.rcParams['figure.subplot.bottom'] = 0.18
 # number of sensor
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
-SENSORS = 3
+# SENSORS = 3
 
 # frequency for analysis target
 MAX_F = 20
@@ -308,7 +308,10 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sp_f"] = sp_f
                     res_lst[-1]["sp_t"] = sp_t
 
-                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f = self.power_density_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
+                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f = self.power_density_analize(
+                        data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
+                        self.sampling_rate, 
+                        self.sampling_rate * self.segment_duration_sec)
 
                     res_lst[-1]["sa_graphs"] = sa_graphs
                     res_lst[-1]["sa_peak_amp"] = sa_peak_amp
@@ -712,9 +715,6 @@ class MainApp(tk.Tk):
 
         specs = []
         for i in range(3):
-            #################################################################################
-            # matlab の detrend の結果と, scipyのdetrend の結果を比較→一致すれば, stftを使いまわして2乗して時間での平均を出せば多分いける
-            # scipy の scipy.signal.detrend() が使えるらしい(絶対誤差0.0001以下)
             #spec, f, t = self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec, int(nperseg * 0.75))
             f, t, spec = spectrogram(detrend(data[i]), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=int(nperseg * 0.75), nfft=2**12, mode="complex", ) # scipy
             # spec, f, t, _ = pltspectrogram(detrend(data[i]), Fs=fs, pad_to=int(nperseg), noverlap=int(nperseg * 0.75), NFFT=2**12, mode="magnitude", scale="linear") #plt
@@ -864,9 +864,6 @@ class MainApp(tk.Tk):
         return q75 - q25
 
     def ft_coherence(self, data1, data2, fs, start=0, end=-1):
-        """
-        now developing
-        """
         if (len(data1) != len(data2)):
             # sg.Popup("data1 and data2 have different lengths")
             print("data1 and data2 have different lengths")
