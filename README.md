@@ -1,7 +1,8 @@
 # Tremor Analysis
 
 ## About this  
-We provide two programs, app.py and multiple.py. app.py works on one file or pair of files, while multiple.py works on all files you want to examine at once and exports the results. The following is mainly an explanation of app.py, so if you are using multiple.py, please refer to [README.md in the multiple_analysis directory](./multiple_analysis/README.md) after you are done with `conda activation`.
+We provide two programs, app.py and multiple.py. app.py works on one file or pair of files and can be operated interactively, while multiple.py works on all files you want to examine at once and exports the results. 
+The following is mainly an explanation of app.py, so if you are using multiple.py, please refer to [README.md in the multiple_analysis directory](./multiple_analysis/README.md) after you are done with `conda activation`.
 
 ## How to use
 
@@ -106,11 +107,21 @@ python app.py --row_start 11 --column_start 2 --sensors_num 3 --encoding shift_j
 1. After a few moments, the graph and numbers will appear in a window.
 1. You can also press the `Browse` button on Data2 to load the other data.
 
+### Configuration
+- Segment duration  
+You can change `segment duration` in short-time Fourier Transform.
+
+- Sampling rate(IMPORTANT)  
+You MUST specify the sampling rate of the data series to analyze accurately.
+
+- Frame range  
 About Frame range, when specifying "X to Y", data between X and Y is used. The range starts at 0, and if you want to specify the end of the range, specify " X to -1". For example, when using data from 0 to 5999, it will be "0 to 5999" or "0 to -1".  
 Switch between Data1 and Data2 in now-showing.  
 Select the mode of analysis in the Analysis section and the sensor to be displayed in the Sensor section.
 For more information about modes, see [Modes](#Modes).
 
+- Apply settings  
+You must pless `Apply` button after you change the settings.
 
 ## Supported file format
 csv, xlms, xlsx files are supported. Files must follow these rules.
