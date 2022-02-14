@@ -1,7 +1,7 @@
 # Tremor Analysis
 
 ## About this  
-There are two programs, app.py and multiple.py. app.py works on one file or pair of files, while multiple.py works on all files at once and exports the results. The following is mainly an explanation of app.py, so if you are using multiple.py, please refer to README.md in the multiple_analysis directory after you are done with `conda activation`.
+There are two programs, app.py and multiple.py. app.py works on one file or pair of files, while multiple.py works on all files at once and exports the results. The following is mainly an explanation of app.py, so if you are using multiple.py, please refer to README.md in the [multiple_analysis](./multiple_analysis/) directory after you are done with `conda activation`.
 
 ## How to use
 
@@ -99,13 +99,17 @@ You can also start it with `python app.py` without any configuration. In this ca
 
 
 ### Operation  
-1.  Press the browser button in Data I and select the file to be analyzed.
+1. Set up Segment duration, Sampling rate, and Frame range.
+1. Press the browser button in Data I and select the file to be analyzed.
 1. After a few moments, the graph and numbers will appear in a window.
 1. You can also press the `Browse` button on Data2 to load the other data.  
 
+About Frame range, when specifying "X to Y", data between X and Y is used. The range starts at 0, and if you want to specify the end of the range, specify " X to -1". For example, when using data from 0 to 5999, it will be "0 to 5999" or "0 to -1".  
 Switch between Data1 and Data2 in now-showing.  
 Select the mode of analysis in the Analysis section and the sensor to be displayed in the Sensor section.
-For more information about modes, [click here](#Modes).
+For more information about modes, [click here](#Modes).  
+
+
 
 
 ## Supported file format
