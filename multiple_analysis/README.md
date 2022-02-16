@@ -7,7 +7,7 @@ app.py works for a file or a pair of files. On the other hand, this program, mul
 ## How to use
 
 ### Launch program
-After doing `Conda activation` and setting "current directory" to here "continuous_analize", launch with a command that replaces `app.py` with `multiple.py` from case `app.py`. Command line arguments work in the same way as `app.py`.
+After doing [Conda activation](../README.md#conda-activation) and setting "current directory" to here "continuous_analize", enter the following command to launch the program. Command line arguments work in the same way as `app.py`.
 ```
 python multiple.py (arguments)
 ```
@@ -31,8 +31,8 @@ data-YYYYMMDDhhmm
 ```
 
 ### Configuration
-You can configure `sampling rate` and `segment duration` the same way as `app.py`.
-For detail, see [Configuration in the repository root](../README.md#Configuration).
+You can configure `sampling rate` and `segment duration` in the same way as `app.py`.
+For details, see [Configuration in the repository root](../README.md#Configuration).
 
 ### Scan and Run
 You can check files which will be analized by clicking "scan" button. 

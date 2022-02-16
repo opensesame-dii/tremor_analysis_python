@@ -198,7 +198,7 @@ class MainApp(tk.Tk):
         data_input_frame = ttk.Frame(info_frame,relief="groove",borderwidth=5)
         data_label1 = ttk.Label(
             data_input_frame,
-            text="data1:"
+            text="Data1:"
             )
         data_label1.grid(row=0, column=0) 
 
@@ -206,10 +206,10 @@ class MainApp(tk.Tk):
         # self.brows_button1.bind("<ButtonPress>", self.file_dialog)
         self.browse_button1.grid(row=0, column=1)  
 
-        self.clear_button = ttk.Button(data_input_frame,text="clear", command=lambda: self.reset())
+        self.clear_button = ttk.Button(data_input_frame,text="Clear", command=lambda: self.reset())
         self.clear_button.grid(row=0, column=2)
 
-        data_label2 = ttk.Label(data_input_frame,text = "data2:")
+        data_label2 = ttk.Label(data_input_frame,text = "Data2:")
         data_label2.grid(row=1, column=0)
 
         self.browse_button2 = ttk.Button(data_input_frame,text="Browse", command=lambda: self.file_dialog(1))
@@ -228,12 +228,12 @@ class MainApp(tk.Tk):
 
         #モード選択
         settings_frame = ttk.Frame(info_frame,relief="groove")
-        now_showing = ttk.Label(settings_frame,text="now showing:")
+        now_showing = ttk.Label(settings_frame,text="Currently displayed:")
         now_showing.grid(row=0, column=0)
-        analysis = ttk.Label(settings_frame, text="Analysis:")
-        analysis.grid(row=1, column=0)
         sensor = ttk.Label(settings_frame, text="Sensor")
-        sensor.grid(row=2, column=0)
+        sensor.grid(row=1, column=0)
+        analysis = ttk.Label(settings_frame, text="Analysis mode:")
+        analysis.grid(row=2, column=0)
         #warning
         self.warning_frame=ttk.Frame(info_frame)
         self.warning=ttk.Label(self.warning_frame,text="off-scale warning")
@@ -243,18 +243,18 @@ class MainApp(tk.Tk):
 
         #この書き方（moduleを使う）は良くない気がする、、、
         module = ("data_list","mode_list","analysis","sensor_list")
-        self.now_showing_box = ttk.Combobox(settings_frame, values=["data1", "data2"], state="readonly")
-        self.now_showing_box.set("data1")
+        self.now_showing_box = ttk.Combobox(settings_frame, values=self.data_index, state="readonly")
+        self.now_showing_box.set(self.data_index[0])
         self.now_showing_box.bind("<<ComboboxSelected>>", self.onchange_showing)
         self.now_showing_box.grid(row=0, column=1)
-        self.analysis_box = ttk.Combobox(settings_frame, values=self.modes, state="readonly")
-        self.analysis_box.set(self.modes[0])
-        self.analysis_box.bind("<<ComboboxSelected>>", self.onchange_analysis)
-        self.analysis_box.grid(row=1, column=1)
         self.sensor_box = ttk.Combobox(settings_frame, values=self.sensors, state="readonly")
         self.sensor_box.set(self.sensors[0])
         self.sensor_box.bind("<<ComboboxSelected>>", self.onchange_sensor)
-        self.sensor_box.grid(row=2, column=1)
+        self.sensor_box.grid(row=1, column=1)
+        self.analysis_box = ttk.Combobox(settings_frame, values=self.modes, state="readonly")
+        self.analysis_box.set(self.modes[0])
+        self.analysis_box.bind("<<ComboboxSelected>>", self.onchange_analysis)
+        self.analysis_box.grid(row=2, column=1)
 
         #settings
         settings_frame2 = ttk.Frame(info_frame,relief="groove")
@@ -285,7 +285,7 @@ class MainApp(tk.Tk):
         #result
         result_frame = ttk.Frame(info_frame, relief="groove")
 
-        self.clip = ttk.Button(result_frame, text="copy to clipboard", command=self.copy_to_clipboard)
+        self.clip = ttk.Button(result_frame, text="Copy to clipboard", command=self.copy_to_clipboard)
         self.clip.grid(row=0, column=0,sticky=tk.W)
 
         #data出力のフレーム
@@ -456,6 +456,7 @@ class MainApp(tk.Tk):
         self.current_mode = 0
         self.sensors = ["sensor" + str(i + 1) for i in range(self.SENSORS_NUM)] # "sensor1", "sensor2", ...
         self.current_sensor = 0
+        self.data_index = ["Data1", "Data2"]
 
         # empty[sensor][axis]
         # axis -> x, y, z, norm
@@ -713,7 +714,7 @@ class MainApp(tk.Tk):
         self.gui_update(file_update=None, settings_changed=True, recalculation=True, change_target=False)
 
     def onchange_showing(self, event):
-        idx = ["data1", "data2"].index(self.now_showing_box.get())
+        idx = self.data_index.index(self.now_showing_box.get())
         if (self.current_data == idx):
             return
         self.current_data = idx
