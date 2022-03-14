@@ -140,6 +140,8 @@ class MainApp(tk.Tk):
         # frequency range
         if (self.args.min_frequency < 0):
             raise ValueError("min_frequency must be greater than or equal to 0")
+        if (self.args.min_frequency >= self.args.max_frequency):
+            raise ValueError("min_frequency must be less than max_frequency")
         self.min_f = self.args.min_frequency
         self.max_f = self.args.max_frequency
 

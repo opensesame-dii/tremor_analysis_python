@@ -33,9 +33,7 @@ plt.rcParams['figure.subplot.bottom'] = 0.18
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
 # SENSORS = 3
 
-# frequency for analysis target
-MAX_F = 20
-MIN_F = 2
+
 
 
 # figure size settings #白い画像を生成
@@ -134,6 +132,8 @@ class MainApp(tk.Tk):
         parser.add_argument("--row_start",type=int,default=1)
         parser.add_argument("--column_start",type=int,default=1)
         parser.add_argument("--sensors_num",type=int,default=3)
+        parser.add_argument("--min_frequency",type=int,default=2)
+        parser.add_argument("--max_frequency",type=int,default=20)
             
         self.args = parser.parse_args()
 
@@ -145,6 +145,13 @@ class MainApp(tk.Tk):
         self.segment_duration_sec = 5
         self.frame_range = [0, -1]
 
+        # frequency range
+        if (self.args.min_frequency < 0):
+            raise ValueError("min_frequency must be greater than or equal to 0")
+        if (self.args.min_frequency >= self.args.max_frequency):
+            raise ValueError("min_frequency must be less than max_frequency")
+        self.min_f = self.args.min_frequency
+        self.max_f = self.args.max_frequency
         
 
         self.result_value_keys = [
@@ -870,13 +877,13 @@ class MainApp(tk.Tk):
         # print("spectrogram shape: {}".format(result.shape))
 
         # print(len(data) / fs - segment_duration / 2)
-        sliced_result = result.T[int(nPad / fs * MIN_F):int(nPad / fs * MAX_F), :] * 2 / sum_window
+        sliced_result = result.T[int(nPad / fs * self.min_f):int(nPad / fs * self.max_f), :] * 2 / sum_window
         if (x_length - len(data)) < 0:
             t = np.linspace(segment_duration / 2, len(data) / fs - segment_duration / 2, result.shape[0] + (len(data) - x_length))[0:x_length - len(data)]
         else:
             t = np.linspace(segment_duration / 2, len(data) / fs - segment_duration / 2, result.shape[0] + (len(data) - x_length))
         
-        f = np.linspace(MIN_F, MAX_F, np.shape(sliced_result)[0])
+        f = np.linspace(self.min_f, self.max_f, np.shape(sliced_result)[0])
 
         return sliced_result, f, t
 
@@ -942,7 +949,7 @@ class MainApp(tk.Tk):
         specs = np.array(specs) #specs.shape: (3, 640, 527)
 
         # trim into frequency range
-        f_range = np.array([MIN_F, MAX_F]) * len(f) * 2 // self.sampling_rate
+        f_range = np.array([self.min_f, self.max_f]) * len(f) * 2 // self.sampling_rate
         specs = specs[:, f_range[0]: f_range[1] , :]
         f = f[f_range[0]: f_range[1]]
 
@@ -1047,7 +1054,7 @@ class MainApp(tk.Tk):
         specs = np.array(specs) #specs.shape: (3, 640)
 
         # trim into frequency range
-        f_range = np.array([MIN_F, MAX_F]) * len(f) * 2 // self.sampling_rate
+        f_range = np.array([self.min_f, self.max_f]) * len(f) * 2 // self.sampling_rate
         specs = specs[:, f_range[0]: f_range[1]]
         f = f[f_range[0]: f_range[1]]
 

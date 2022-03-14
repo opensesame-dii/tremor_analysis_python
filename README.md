@@ -101,6 +101,8 @@ In this case, default values are automatically set to each omitted arguments.
 - `--column_start` (default: 1) : enter the first column
 - `--sensors_num` (default: 3) : enter the number of sensors used in the experiments.
 - `--encoding` (default: utf-8) : enter the encoding of the file you want to analyze.
+- `--min_frequency` (default: 2) : enter the minimum frequency used in the analysis.
+- `--max_frequency` (default: 20) : enter the maximum frequency used in the analysis.
 You can refer to all encodings list [here](https://docs.python.org/3/library/codecs.html#standard-encodings).
 
 For example, [in this file](./analysis_samples), the data starts with row 11 and column 2, having 3 sensors, and Shift_jis encoded, so please launch program by the following command.
