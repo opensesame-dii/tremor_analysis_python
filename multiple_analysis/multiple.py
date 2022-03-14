@@ -324,7 +324,7 @@ class MainApp(tk.Tk):
 
                     csv_row.append([
                         filenames[file_idx],
-                        sensor_idx,
+                        sensor_idx+1,
                         sp_peak_amp, sp_peak_freq, sp_peak_time,
                         sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi,
                     ])
@@ -407,36 +407,51 @@ class MainApp(tk.Tk):
                 ax_y.grid(True)
                 ax_z.grid(True)
 
-                plt.gcf().text(0.01,0.95,f"sensor:{i}", backgroundcolor="#D3DEF1")
-
-                plt.gcf().text(0.1,0.90,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_amp"], backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.85,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_freq"], backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.80,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_time"], backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.75,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_amp"], backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.70,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_freq"], backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.65,res_lst[file_idx * self.SENSORS_NUM + i]["sa_fwhm"], backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.60,res_lst[file_idx * self.SENSORS_NUM + i]["sa_hwp"], backgroundcolor="#D3DEF1")
-                plt.gcf().text(0.1,0.55,res_lst[file_idx * self.SENSORS_NUM + i]["sa_tsi"], backgroundcolor="#D3DEF1")
+                height = 0.95
+                plt.gcf().text(0.01,height,f"sensor:{i+1}", backgroundcolor="#D3DEF1")
+                height -= 0.05
+                plt.gcf().text(0.01,height,f"sampling_rate: {self.sampling_rate}", backgroundcolor="#D3DEF1")
+                height -= 0.05
+                plt.gcf().text(0.01,height,f"segment_duration_sec: {self.segment_duration_sec}", backgroundcolor="#D3DEF1")
+                height -= 0.05
+                #plt.gcf().text(0.01,height,f"frequency range: {self.min_f} to {self.max_f}", backgroundcolor="#D3DEF1")
+                height -= 0.05
+                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_amp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.001,height,"sp_peak_amp:")
+                height -= 0.05
+                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_freq"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.001,height,"sp_peak_freq:")
+                height -= 0.05
+                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_time"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.001,height,"sp_peak_time:")
+                height -= 0.05
+                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_amp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.001,height,"sa_peak_amp:")
+                height -= 0.05
+                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_freq"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.001,height,"sa_peak_freq:")
+                height -= 0.05
+                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_fwhm"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.001,height,"sa_fwhm:")
+                height -= 0.05
+                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_hwp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.001,height,"sa_hwp:")
+                height -= 0.05
+                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_tsi"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.001,height,"sa_tsi:")
+                height -= 0.05
                 if (len(filenames) == 2):
-                    plt.gcf().text(0.1,0.50,coh_results[i][0], backgroundcolor="#D3DEF1")
-                    plt.gcf().text(0.1,0.45,coh_results[i][1], backgroundcolor="#D3DEF1")
-                    plt.gcf().text(0.1,0.40,coh_results[i][2], backgroundcolor="#D3DEF1")
-                    plt.gcf().text(0.1,0.35,coh_results[i][3], backgroundcolor="#D3DEF1")                  
-            
-
-                plt.gcf().text(0.001,0.90,"sp_peak_amp:")
-                plt.gcf().text(0.001,0.85,"sp_peak_freq:")
-                plt.gcf().text(0.001,0.80,"sp_peak_time:")
-                plt.gcf().text(0.001,0.75,"sa_peak_amp:")
-                plt.gcf().text(0.001,0.70,"sa_peak_freq:")
-                plt.gcf().text(0.001,0.65,"sa_fwhm:")
-                #plt.gcf().text(0.001,0.60,"sa_tsi")
-                plt.gcf().text(0.001,0.60,"sa_hwp:")
-                plt.gcf().text(0.001,0.55,"sa_tsi:")
-                plt.gcf().text(0.001,0.50,"coherence_x:")
-                plt.gcf().text(0.001,0.45,"coherence_y:")
-                plt.gcf().text(0.001,0.40,"coherence_z:")
-                plt.gcf().text(0.001,0.35,"coherence_norm:")
+                    plt.gcf().text(0.1,height,coh_results[i][0], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.001,height,"coherence_x:")
+                    height -= 0.05
+                    plt.gcf().text(0.1,height,coh_results[i][1], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.001,height,"coherence_y:")
+                    height -= 0.05
+                    plt.gcf().text(0.1,height,coh_results[i][2], backgroundcolor="#D3DEF1")
+                    plt.gcf().text(0.001,height,"coherence_z:")
+                    height -= 0.05
+                    plt.gcf().text(0.1,height,coh_results[i][3], backgroundcolor="#D3DEF1")                  
+                    plt.gcf().text(0.001,height,"coherence_norm:")
                 
 
                 ax_preview.set_title('preview')
