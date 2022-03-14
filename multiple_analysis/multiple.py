@@ -41,9 +41,7 @@ plt.rcParams['figure.subplot.bottom'] = 0.18
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
 # SENSORS = 3
 
-# frequency for analysis target
-MAX_F = 20
-MIN_F = 2
+
 
 
 # figure size settings #白い画像を生成
@@ -117,7 +115,9 @@ class MainApp(tk.Tk):
         parser.add_argument("--row_start",type=int,default=1)
         parser.add_argument("--column_start",type=int,default=1)
         parser.add_argument("--sensors_num",type=int,default=3)
-            
+        parser.add_argument("--min_frequency",type=int,default=2)
+        parser.add_argument("--max_frequency",type=int,default=20)
+
         self.args = parser.parse_args()
         # assign YYYYMMDDhhmm when app launched to analize target directory name
         self.launched_str = datetime.datetime.now().strftime("%Y%m%d%H%M")
@@ -136,6 +136,12 @@ class MainApp(tk.Tk):
         self.sampling_rate = 200
         self.segment_duration_sec = 5
         self.frame_range = [0, -1]
+        
+        # frequency range
+        if (self.args.min_frequency < 0):
+            raise ValueError("min_frequency must be greater than or equal to 0")
+        self.min_f = self.args.min_frequency
+        self.max_f = self.args.max_frequency
 
         self.figsize_small = (3.3, 2.5)
         self.figsize_large = (9.9, 3)
@@ -309,7 +315,7 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sp_f"] = sp_f
                     res_lst[-1]["sp_t"] = sp_t
 
-                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f = self.power_density_analize(
+                    sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f, sa_l, sa_u = self.power_density_analize(
                         data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
                         self.sampling_rate, 
                         self.sampling_rate * self.segment_duration_sec)
@@ -321,6 +327,8 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sa_hwp"] = sa_hwp
                     res_lst[-1]["sa_tsi"] = sa_tsi
                     res_lst[-1]["sa_f"] = sa_f
+                    res_lst[-1]["sa_l"] = sa_l
+                    res_lst[-1]["sa_u"] = sa_u
 
                     csv_row.append([
                         filenames[file_idx],
@@ -394,6 +402,7 @@ class MainApp(tk.Tk):
     def makepic(self, dir_idx, filenames, data, res_lst, coh_results):
         for file_idx in range(len(filenames)):
             for i in range(self.SENSORS_NUM):
+                lst_idx = file_idx * self.SENSORS_NUM + i
                 fig = plt.figure(figsize=(12,8))
                 ax_preview = plt.subplot2grid((3,4), (0,1), colspan=3)
                 ax_norm = plt.subplot2grid((3,4), (1,1), colspan=3)
@@ -414,30 +423,30 @@ class MainApp(tk.Tk):
                 height -= 0.05
                 plt.gcf().text(0.01,height,f"segment_duration_sec: {self.segment_duration_sec}", backgroundcolor="#D3DEF1")
                 height -= 0.05
-                #plt.gcf().text(0.01,height,f"frequency range: {self.min_f} to {self.max_f}", backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.01,height,f"frequency range: {self.min_f} to {self.max_f}", backgroundcolor="#D3DEF1")
                 height -= 0.05
-                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_amp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,height,res_lst[lst_idx]["sp_peak_amp"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.001,height,"sp_peak_amp:")
                 height -= 0.05
-                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_freq"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,height,res_lst[lst_idx]["sp_peak_freq"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.001,height,"sp_peak_freq:")
                 height -= 0.05
-                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sp_peak_time"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,height,res_lst[lst_idx]["sp_peak_time"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.001,height,"sp_peak_time:")
                 height -= 0.05
-                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_amp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,height,res_lst[lst_idx]["sa_peak_amp"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.001,height,"sa_peak_amp:")
                 height -= 0.05
-                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_peak_freq"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,height,res_lst[lst_idx]["sa_peak_freq"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.001,height,"sa_peak_freq:")
                 height -= 0.05
-                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_fwhm"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,height,res_lst[lst_idx]["sa_fwhm"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.001,height,"sa_fwhm:")
                 height -= 0.05
-                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_hwp"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,height,res_lst[lst_idx]["sa_hwp"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.001,height,"sa_hwp:")
                 height -= 0.05
-                plt.gcf().text(0.1,height,res_lst[file_idx * self.SENSORS_NUM + i]["sa_tsi"], backgroundcolor="#D3DEF1")
+                plt.gcf().text(0.1,height,res_lst[lst_idx]["sa_tsi"], backgroundcolor="#D3DEF1")
                 plt.gcf().text(0.001,height,"sa_tsi:")
                 height -= 0.05
                 if (len(filenames) == 2):
@@ -461,20 +470,20 @@ class MainApp(tk.Tk):
                 titles = ["x","y","z"]
 
                 # spectrogram
-                vmin = np.min(res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][0:3])
-                vmax = np.max(res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][0:3])
+                vmin = np.min(res_lst[lst_idx]["sp_graphs"][0:3])
+                vmax = np.max(res_lst[lst_idx]["sp_graphs"][0:3])
                 for axis in range(3):
                     # plot preview
                     ax_preview.plot(data[file_idx][:,i * self.SENSORS_NUM + axis])
 
                     # plot spectrogram
-                    im = graphs[axis].pcolormesh(res_lst[file_idx * self.SENSORS_NUM + i]["sp_t"], res_lst[file_idx * self.SENSORS_NUM + i]["sp_f"], res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][axis], cmap="jet", vmin=vmin, vmax=vmax)
+                    im = graphs[axis].pcolormesh(res_lst[lst_idx]["sp_t"], res_lst[lst_idx]["sp_f"], res_lst[lst_idx]["sp_graphs"][axis], cmap="jet", vmin=vmin, vmax=vmax)
                     graphs[axis].set_xlabel("Time [sec]")
                     graphs[axis].set_title(titles[axis])
                 ax_preview.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
                 # x軸のみ縦軸のラベルを付ける
                 graphs[0].set_ylabel("Frequency [Hz]")
-                im = ax_norm.pcolormesh(res_lst[file_idx * self.SENSORS_NUM + i]["sp_t"], res_lst[file_idx * self.SENSORS_NUM + i]["sp_f"], res_lst[file_idx * self.SENSORS_NUM + i]["sp_graphs"][3], cmap="jet", vmin=vmin, vmax=vmax)
+                im = ax_norm.pcolormesh(res_lst[lst_idx]["sp_t"], res_lst[lst_idx]["sp_f"], res_lst[lst_idx]["sp_graphs"][3], cmap="jet", vmin=vmin, vmax=vmax)
                 ax_norm.set_title("Norm")
                 ax_norm.set_xlabel("Time [sec]")
                 ax_norm.set_ylabel("Frequency [Hz]")
@@ -490,21 +499,22 @@ class MainApp(tk.Tk):
                 cbar.remove()
 
                 # spectral amptitude
-                vmin = np.min(res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][0:3])
-                vmax = np.max(res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][0:3])
+                vmin = np.min(res_lst[lst_idx]["sa_graphs"][0:3])
+                vmax = np.max(res_lst[lst_idx]["sa_graphs"][0:3])
                 for axis in range(3):
                     # plot spectrogram
                     graphs[axis].set_ylim(0, vmax * 1.2)
-                    graphs[axis].plot(res_lst[file_idx * self.SENSORS_NUM + i]["sa_f"], res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][axis])
+                    graphs[axis].plot(res_lst[lst_idx]["sa_f"], res_lst[lst_idx]["sa_graphs"][axis])
                     graphs[axis].set_xlabel("Frequency [Hz]")
                     graphs[axis].set_title(titles[axis])
                 # ax_preview.legend(labels=["x", "y", "z"],bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0, fontsize=15)
                 # x軸のみ縦軸のラベルを付ける
                 graphs[0].set_ylabel("Amplitude")
-                ax_norm.plot(res_lst[file_idx * self.SENSORS_NUM + i]["sa_f"], res_lst[file_idx * self.SENSORS_NUM + i]["sa_graphs"][3])
+                ax_norm.plot(res_lst[lst_idx]["sa_f"], res_lst[lst_idx]["sa_graphs"][3])
                 ax_norm.set_title("Norm")
                 ax_norm.set_xlabel("Frequency [Hz]")
                 ax_norm.set_ylabel("Amplitude")
+                ax_norm.fill_between(res_lst[lst_idx]["sa_f"][res_lst[lst_idx]["sa_l"]:res_lst[lst_idx]["sa_u"]], res_lst[lst_idx]["sa_graphs"][3, res_lst[lst_idx]["sa_l"]:res_lst[lst_idx]["sa_u"]], color="r", alpha=0.5)
                 
                 fig.savefig(os.path.join(self.dir_list[dir_idx], f"{filenames[file_idx]}_sensor{i}_spectral_amplitude.png"))
 
@@ -653,7 +663,7 @@ class MainApp(tk.Tk):
         specs = np.array(specs) #specs.shape: (3, 640, 527)
 
         # trim into frequency range
-        f_range = np.array([MIN_F, MAX_F]) * len(f) * 2 // self.sampling_rate
+        f_range = np.array([self.min_f, self.max_f]) * len(f) * 2 // self.sampling_rate
         specs = specs[:, f_range[0]: f_range[1] , :]
         f = f[f_range[0]: f_range[1]]
 
@@ -750,7 +760,7 @@ class MainApp(tk.Tk):
         specs = np.array(specs) #specs.shape: (3, 640)
 
         # trim into frequency range
-        f_range = np.array([MIN_F, MAX_F]) * len(f) * 2 // self.sampling_rate
+        f_range = np.array([self.min_f, self.max_f]) * len(f) * 2 // self.sampling_rate
         specs = specs[:, f_range[0]: f_range[1]]
         f = f[f_range[0]: f_range[1]]
 
@@ -806,7 +816,7 @@ class MainApp(tk.Tk):
 
         plt.close("all")
         # return graphs, peak_amp, peak_freq, fwhm, hwp, tsi
-        return specs, peak_amp, peak_freq, fwhm, hwp, tsi, f
+        return specs, peak_amp, peak_freq, fwhm, hwp, tsi, f, l, u
 
     def full_width_half_maximum(self, x, y):
         """
