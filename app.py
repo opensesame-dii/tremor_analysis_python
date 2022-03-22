@@ -1084,7 +1084,7 @@ class MainApp(tk.Tk):
 
         is_estimated, l, u, lv, uv, hwp = self.full_width_half_maximum(data_idx, sensor_idx, f, specs[3])
         if (uv is None and lv is None):
-            fwhm = str("None")
+            fwhm = "None"
         else:
             fwhm = uv - lv
         # print(l, u, lv, uv)

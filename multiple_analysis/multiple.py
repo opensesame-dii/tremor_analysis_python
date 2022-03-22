@@ -516,7 +516,8 @@ class MainApp(tk.Tk):
                 ax_norm.set_title("Norm")
                 ax_norm.set_xlabel("Frequency [Hz]")
                 ax_norm.set_ylabel("Amplitude")
-                ax_norm.fill_between(res_lst[lst_idx]["sa_f"][res_lst[lst_idx]["sa_l"]:res_lst[lst_idx]["sa_u"]], res_lst[lst_idx]["sa_graphs"][3, res_lst[lst_idx]["sa_l"]:res_lst[lst_idx]["sa_u"]], color="r", alpha=0.5)
+                if (res_lst[lst_idx]["sa_l"] is not None and res_lst[lst_idx]["sa_u"] is not None):
+                    ax_norm.fill_between(res_lst[lst_idx]["sa_f"][res_lst[lst_idx]["sa_l"]:res_lst[lst_idx]["sa_u"]], res_lst[lst_idx]["sa_graphs"][3, res_lst[lst_idx]["sa_l"]:res_lst[lst_idx]["sa_u"]], color="r", alpha=0.5)
                 
                 fig.savefig(os.path.join(self.dir_list[dir_idx], f"{filenames[file_idx]}_sensor{i}_spectral_amplitude.png"))
 
@@ -794,7 +795,8 @@ class MainApp(tk.Tk):
 
         is_estimated, l, u, lv, uv, hwp = self.full_width_half_maximum(f, specs[3])
         if (uv is None and lv is None):
-            fwhm =str("None")
+            fwhm = "None"
+            hwp = "None"
         elif(is_estimated):
             fwhm = str(uv - lv) + "(estimated)"
             hwp = str(hwp) + "(estimated)"
@@ -871,6 +873,9 @@ class MainApp(tk.Tk):
             upper_v = x[upper] - d * (peak_val_half - y_ndarray[upper]) / (y_ndarray[upper -1] - y_ndarray[upper]) # linear interpolation
         else:
             upper_v = x[upper]
+
+        if (lower == 0 and upper == length -1):
+            return (False, None, None, None, None, None)
 
         # judge whether estimation value is used.
         if (lower == 0):
