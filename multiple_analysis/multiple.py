@@ -800,9 +800,8 @@ class MainApp(tk.Tk):
         #plt.show()
         #### plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "am.png")
         recording = len(data[0]) / fs
-        f_offset = int(specs.shape[1] * 2 / 20)
         
-        peak_amp = np.max(specs[3, f_offset:])
+        peak_amp = np.max(specs[3])
         peak_idx = np.where(specs[3] == peak_amp)
         peak_freq = f[peak_idx[0][0]]
         tsi = self.tremor_stability_index(data[0], fs)

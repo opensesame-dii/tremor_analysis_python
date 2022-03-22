@@ -1082,17 +1082,19 @@ class MainApp(tk.Tk):
         ax.set_xlabel("Frequency [Hz]")
         ax.set_ylabel("Amplitude")
 
-        l, u, lv, uv, hwp = self.full_width_half_maximum(data_idx, sensor_idx, f, specs[3])
-        fwhm = uv - lv
+        is_estimated, l, u, lv, uv, hwp = self.full_width_half_maximum(data_idx, sensor_idx, f, specs[3])
+        if (uv is None and lv is None):
+            fwhm = str("None")
+        else:
+            fwhm = uv - lv
         # print(l, u, lv, uv)
         # print(specs[3, int(l)])
         ax.fill_between(f[l:u], specs[3, l:u], color="r", alpha=0.5)
         #plt.show()
         #### plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "am.png")
         recording = len(data[0]) / fs
-        f_offset = int(specs.shape[1] * 2 / 20)
         
-        peak_amp = np.max(specs[3, f_offset:])
+        peak_amp = np.max(specs[3])
         peak_idx = np.where(specs[3] == peak_amp)
         peak_freq = f[peak_idx[0][0]]
         tsi = self.tremor_stability_index(data_idx, sensor_idx, data[0], fs)
@@ -1110,8 +1112,12 @@ class MainApp(tk.Tk):
 
         self.results[data_idx]["sa_peak_amplitude"][sensor_idx][3] = peak_amp
         self.results[data_idx]["sa_peak_frequency"][sensor_idx][3] = peak_freq
-        self.results[data_idx]["sa_fwhm"][sensor_idx][3] = fwhm
-        self.results[data_idx]["sa_hwp"][sensor_idx][3] = hwp
+        if (is_estimated):
+            self.results[data_idx]["sa_fwhm"][sensor_idx][3] = str(fwhm) + "(estimated)"
+            self.results[data_idx]["sa_hwp"][sensor_idx][3] = str(hwp) + "(estimated)"
+        else:
+            self.results[data_idx]["sa_fwhm"][sensor_idx][3] = fwhm
+            self.results[data_idx]["sa_hwp"][sensor_idx][3] = hwp
         self.results[data_idx]["sa_tsi"][sensor_idx][3] = tsi
         plt.close("all")
         return peak_amp, peak_freq, fwhm, hwp, tsi
@@ -1126,6 +1132,8 @@ class MainApp(tk.Tk):
         y: array-like
 
         Retuerns
+        is_estimated: bool
+            whether estimation value is used
         lower: int
             lower limit index
         upper: int
@@ -1145,6 +1153,7 @@ class MainApp(tk.Tk):
         lower = peak_idx
         upper = peak_idx
         d = np.abs(x[1] - x[0])
+        is_estimated = False
 
         while (lower > 0 and y_ndarray[lower] > peak_val_half):
             lower -= 1
@@ -1152,17 +1161,35 @@ class MainApp(tk.Tk):
             lower_v = x[lower] + d * (peak_val_half - y_ndarray[lower]) / (y_ndarray[lower + 1] - y_ndarray[lower]) # linear interpolation
         else:
             lower_v = x[lower]
-    
+        
         while (upper < length - 1 and y_ndarray[upper] > peak_val_half):
             upper += 1    
         if (y_ndarray[upper] != peak_val_half and upper != length - 1):
             upper_v = x[upper] - d * (peak_val_half - y_ndarray[upper]) / (y_ndarray[upper -1] - y_ndarray[upper]) # linear interpolation
         else:
             upper_v = x[upper]
-        # hwp
-        hwp = np.sum(y_ndarray[lower: upper]) * d
 
-        return (lower, upper, lower_v, upper_v, hwp)
+        if (lower == 0 and upper == length -1):
+            return (False, None, None, None, None, None)
+
+        # judge whether estimation value is used.
+        if (lower == 0):
+            is_estimated = True
+            upper_v= x[upper]
+            lower_v = x[peak_idx] - (x[upper] - x[peak_idx])
+            hwp = np.sum(y_ndarray[peak_idx: upper]) * d * 2
+        elif(upper == length -1):
+            is_estimated = True
+            lower_v = x[lower]
+            upper_v = x[peak_idx] + (x[peak_idx] - x[lower])
+            hwp = np.sum(y_ndarray[lower: peak_idx]) * d * 2
+        else:
+            # not estimated
+            hwp = np.sum(y_ndarray[lower: upper]) * d
+        
+        
+
+        return (is_estimated, lower, upper, lower_v, upper_v, hwp)
 
     def tremor_stability_index(self, data_idx, sensor_idx, x, fs):
         """
