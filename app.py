@@ -1089,7 +1089,8 @@ class MainApp(tk.Tk):
             fwhm = uv - lv
         # print(l, u, lv, uv)
         # print(specs[3, int(l)])
-        ax.fill_between(f[l:u], specs[3, l:u], color="r", alpha=0.5)
+        if (l is not None and u is not None):
+            ax.fill_between(f[l:u], specs[3, l:u], color="r", alpha=0.5)
         #plt.show()
         #### plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "am.png")
         recording = len(data[0]) / fs
