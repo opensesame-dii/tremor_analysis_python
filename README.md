@@ -51,7 +51,8 @@ conda install matplotlib=3.1.3
 conda install numpy=1.21.2
 conda install pandas=1.3.5
 conda install tk=8.6.11
-conda install scipy=1.7.3 
+conda install scipy=1.7.3
+conda install scikit-learn=1.0.2
 ```
 
 Hints

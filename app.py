@@ -25,6 +25,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import backend_tools as cbook
 # import PySimpleGUI as sg
 import pandas as pd
+from sklearn.decomposition import PCA
 
 from matplotlib import use
 use('TkAgg')
@@ -1098,7 +1099,7 @@ class MainApp(tk.Tk):
         peak_amp = np.max(specs[3])
         peak_idx = np.where(specs[3] == peak_amp)
         peak_freq = f[peak_idx[0][0]]
-        tsi = self.tremor_stability_index(data_idx, sensor_idx, data[0], fs)
+        tsi = self.tremor_stability_index(data_idx, sensor_idx, data, fs)
 
 
 
@@ -1192,38 +1193,34 @@ class MainApp(tk.Tk):
 
         return (is_estimated, lower, upper, lower_v, upper_v, hwp)
 
-    def tremor_stability_index(self, data_idx, sensor_idx, x, fs):
+    def tremor_stability_index(self, data_idx, sensor_idx, data, fs):
         """
         Tremor Stability Index
 
         Params
-        x: array-like
+        data: array-like
             data
         fs: int/float
             sampling rate
         """
-        x_detrend = detrend(x)
+        
+        pca = PCA(n_components=1)
+        x = np.ravel(pca.fit_transform(detrend(data).T))
         length = len(x)
 
-        # plt.plot(x_detrend)
-        # plt.show()
-
-        start = x_detrend[0]
+        
         idx = 1
-        # array of zero-crossing points index
         zero_crossing = np.empty(0)
         while (idx < length):
-            while (idx < length and start * x_detrend[idx] > 0):
-                idx += 1
-            while (idx < length and start * x_detrend[idx] < 0):
-                idx += 1
-            zero_crossing = np.append(zero_crossing, idx)
-        interval = np.diff(zero_crossing)
-        tremor_freq = fs / interval # convert to frequency
-        delta_freq = np.diff(tremor_freq)
+            if (x[idx - 1] < 0 and x[idx] >= 0):
+                zero_crossing = np.append(zero_crossing, idx)
+            idx += 1
 
+        f = fs / np.diff(np.array(zero_crossing))
+        delta_f = np.diff(f)
+        q75, q25 = np.percentile(delta_f, [75, 25], interpolation="nearest")
+        
         # 四分位範囲
-        q75, q25 = np.percentile(delta_freq, [75 ,25])
         return q75 - q25
 
     def ft_coherence(self, sensor_idx, axis_idx, data1, data2, fs, start=0, end=-1):
