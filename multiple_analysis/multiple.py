@@ -23,7 +23,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 # from PIL import Image, ImageTk
 import numpy as np
-from scipy.signal import hamming, detrend, morlet2, cwt, spectrogram, get_window
+from scipy.signal import hamming, detrend, morlet2, cwt, spectrogram, get_window, butter, sosfilt
 from matplotlib.mlab import cohere, window_hanning
 from matplotlib.pyplot import specgram as pltspectrogram
 from matplotlib.figure import Figure
@@ -907,11 +907,31 @@ class MainApp(tk.Tk):
         fs: int/float
             sampling rate
         """
+        # highpass filter
+        sos = butter(N=3, Wn=0.1, btype="highpass", fs=fs, output='sos')
+        data = sosfilt(sos, data, axis=0) 
         
+        # principal component analysis
         pca = PCA(n_components=1)
         x = np.ravel(pca.fit_transform(detrend(data).T))
         length = len(x)
-
+        
+        nperseg = self.sampling_rate * self.segment_duration_sec
+        nTimesSpectrogram = 500; 
+        L = np.min((length, nperseg))
+        noverlap = np.ceil(L - (length - L) / (nTimesSpectrogram - 1))
+        noverlap = int(np.max((1,noverlap)))
+        freq, _, spec = spectrogram(detrend(x), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=int(noverlap), nfft=2**12, mode="complex", )
+        max_freq = freq[np.unravel_index(np.argmax(spec, axis=None), spec.shape)[0]]
+        spec = np.abs(spec)
+        
+        if (max_freq < 2):
+            max_freq = 2.001 # to create bandpass filter, max_freq - 2 maust be larger than 0
+        elif (max_freq > 9):
+            max_freq = 9
+        
+        sos = butter(N=3, Wn=(max_freq - 2, max_freq + 2), btype="bandpass", fs=fs, output='sos')
+        x= sosfilt(sos, x, axis=0)
         
         idx = 1
         zero_crossing = np.empty(0)
@@ -924,7 +944,7 @@ class MainApp(tk.Tk):
         delta_f = np.diff(f)
         q75, q25 = np.percentile(delta_f, [75, 25], interpolation="nearest")
         
-        # 四分位範囲
+        # tsi
         return q75 - q25
 
     def ft_coherence(self, data1, data2, fs, start=0, end=-1):
