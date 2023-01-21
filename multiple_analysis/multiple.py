@@ -317,7 +317,6 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sp_peak_time"] = sp_peak_time
                     res_lst[-1]["sp_f"] = sp_f
                     res_lst[-1]["sp_t"] = sp_t
-
                     sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f, sa_l, sa_u = self.power_density_analize(
                         data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T,
                         self.sampling_rate,
@@ -942,7 +941,10 @@ class MainApp(tk.Tk):
 
         f = fs / np.diff(np.array(zero_crossing))
         delta_f = np.diff(f)
-        q75, q25 = np.percentile(delta_f, [75, 25], interpolation="nearest")
+        if (len(delta_f) == 0):
+            q75, q25 = 0, 0
+        else:
+            q75, q25 = np.percentile(delta_f, [75, 25], interpolation="nearest")
 
         # tsi
         return q75 - q25
@@ -963,8 +965,8 @@ class MainApp(tk.Tk):
         x1 = data1[start: end + 1]
         x2 = data2[start: end + 1]
 
-        nfft = 2 ** 10
-        noverlap = 2 ** 9
+        nfft = 2 ** 8
+        noverlap = 2 ** 7
         Cyx, f = cohere(x2, x1, NFFT=nfft, Fs=fs,
                     window=window_hanning, noverlap=noverlap)
         FREQ_LOW = 2
