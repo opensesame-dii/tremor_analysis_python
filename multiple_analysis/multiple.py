@@ -23,7 +23,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 # from PIL import Image, ImageTk
 import numpy as np
-from scipy.signal import hamming, detrend, morlet2, cwt, spectrogram, get_window
+from scipy.signal import hamming, detrend, morlet2, cwt, spectrogram, get_window, butter, sosfilt
+from matplotlib import use
+use('TkAgg')
 from matplotlib.mlab import cohere, window_hanning
 from matplotlib.pyplot import specgram as pltspectrogram
 from matplotlib.figure import Figure
@@ -31,11 +33,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import backend_tools as cbook
 # import PySimpleGUI as sg
 import pandas as pd
+from sklearn.decomposition import PCA
 
-from csv import writer
-
-from matplotlib import use
-use('TkAgg')
 plt.rcParams['figure.subplot.bottom'] = 0.18
 # number of sensor
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
@@ -79,7 +78,7 @@ class ScrollableFrame(tk.Frame):
 
         self.canvas.configure(yscrollcommand=self.vscrollbar.set)
         self.canvas.configure(xscrollcommand=self.hscrollbar.set)
-        
+
 
         # Canvasの位置の初期化
         self.canvas.xview_moveto(0)
@@ -136,7 +135,7 @@ class MainApp(tk.Tk):
         self.sampling_rate = 200
         self.segment_duration_sec = 5
         self.frame_range = [0, -1]
-        
+
         # frequency range
         if (self.args.min_frequency < 0):
             raise ValueError("min_frequency must be greater than or equal to 0")
@@ -180,9 +179,9 @@ class MainApp(tk.Tk):
         self.title("tremor multiple analizer")
 
         #if os.name == "nt":
-         #   self.state("zoomed")
+        #   self.state("zoomed")
         #elif os.name == "posix":
-         #   self.attributes("-zoomed", "1")
+        #    self.attributes("-zoomed", "1")
         #self.configure(bg="#778899")
 
         self.create_window()
@@ -231,7 +230,7 @@ class MainApp(tk.Tk):
             self.update_directoryname("directories", self.dir_list)
             self.insert_directorynames("no error detected. ready to run.")
         print(self.dir_list)
-        
+
         if (len(self.dir_list) == 0):
             tk.messagebox.showinfo("Info", "directory is empty")
             return
@@ -250,7 +249,7 @@ class MainApp(tk.Tk):
         # check file error
         if (not self.scan()):
             return
-        
+
 
         self.insert_directorynames("analize has started")
 
@@ -272,7 +271,8 @@ class MainApp(tk.Tk):
             "FT coherence integral(z)",
             "FT coherence integral(norm)"
             ])
-        
+        csv_file.close()
+
         for dir_idx in range(len(self.dir_list)):
             print(self.dir_list[dir_idx])
             self.progress_bar_text.set(f"{dir_idx}/{len(self.dir_list)}")
@@ -285,11 +285,11 @@ class MainApp(tk.Tk):
             csv_row = []
 
             for file_idx in range(len(filenames)):
-                df = pd.read_csv(os.path.join(self.target_dir, self.dir_list[dir_idx], filenames[file_idx]), 
+                df = pd.read_csv(os.path.join(self.target_dir, self.dir_list[dir_idx], filenames[file_idx]),
                     header=None, skiprows=self.args.row_start - 1,  usecols=[i + self.args.column_start -1 for i in range(self.args.sensors_num * 3)], encoding=self.args.encoding)
                 npdata = np.array(df.values.flatten())
                 data.append(np.reshape(npdata,(df.shape[0],df.shape[1])))
-                
+
                 # warning to go off the scale
                 off_scale=[]
                 for i in range(data[file_idx].shape[1]):
@@ -297,7 +297,7 @@ class MainApp(tk.Tk):
                         print(f"WARNING: column {i} may go off the scale")
                         off_scale.append(i)
 
-                if len(off_scale) != 0:   
+                if len(off_scale) != 0:
                     self.infolist_box.insert("end", f"off-scale may occur in {self.dir_list[dir_idx]}/{filenames[file_idx]}: ")
 
                     for i in off_scale:
@@ -309,17 +309,16 @@ class MainApp(tk.Tk):
                     # analize
                     sp_graphs, sp_peak_amp, sp_peak_freq, sp_peak_time, sp_f, sp_t = self.spectrogram_analize(data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, self.sampling_rate, self.sampling_rate * self.segment_duration_sec)
                     res_lst.append({})
-                    
+
                     res_lst[-1]["sp_graphs"] = sp_graphs
                     res_lst[-1]["sp_peak_amp"] = sp_peak_amp
                     res_lst[-1]["sp_peak_freq"] = sp_peak_freq
                     res_lst[-1]["sp_peak_time"] = sp_peak_time
                     res_lst[-1]["sp_f"] = sp_f
                     res_lst[-1]["sp_t"] = sp_t
-
                     sa_graphs, sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi, sa_f, sa_l, sa_u = self.power_density_analize(
-                        data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T, 
-                        self.sampling_rate, 
+                        data[file_idx][:, sensor_idx*self.SENSORS_NUM: sensor_idx*self.SENSORS_NUM + self.SENSORS_NUM].T,
+                        self.sampling_rate,
                         self.sampling_rate * self.segment_duration_sec)
 
                     res_lst[-1]["sa_graphs"] = sa_graphs
@@ -338,8 +337,8 @@ class MainApp(tk.Tk):
                         sp_peak_amp, sp_peak_freq, sp_peak_time,
                         sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi,
                     ])
-                    
-                
+
+
             coh_results = []
             if (len(filenames) == 2):
                 # coherence
@@ -347,16 +346,16 @@ class MainApp(tk.Tk):
                     coh_results.append([])
                     for axis_idx in range(3):
                         coh = self.ft_coherence(
-                                data[0][:, 3 * sensor_idx + axis_idx], 
-                                data[1][:, 3 * sensor_idx + axis_idx], 
+                                data[0][:, 3 * sensor_idx + axis_idx],
+                                data[1][:, 3 * sensor_idx + axis_idx],
                                 self.sampling_rate)
                         coh_results[-1].append(coh)
                         csv_row[sensor_idx].append(coh)
                         csv_row[sensor_idx + self.SENSORS_NUM].append(coh)
                     # norm
                     coh = self.ft_coherence(
-                            np.linalg.norm(data[0][:, 3 * sensor_idx: 3 * sensor_idx + axis_idx], axis=1), 
-                            np.linalg.norm(data[1][:, 3 * sensor_idx:3 * sensor_idx + axis_idx], axis=1), 
+                            np.linalg.norm(data[0][:, 3 * sensor_idx: 3 * sensor_idx + axis_idx], axis=1),
+                            np.linalg.norm(data[1][:, 3 * sensor_idx:3 * sensor_idx + axis_idx], axis=1),
                             self.sampling_rate)
                     coh_results[-1].append(coh)
                     csv_row[sensor_idx].append(coh)
@@ -365,7 +364,7 @@ class MainApp(tk.Tk):
             # 計算結果のデータは, res_lst に dictionary の list で格納
             # res_lst は, 各センサー毎に結果を入れてある
             # ファイルが2つあれば, 連続して格納される( len(res_lst) は3または6になる )
-            
+
             # dictionary のキーとその型は次の通り
             # "sp_graphs"     : list of <class 'matplotlib.figure.Figure'> (x, y, z, norm の順)
             # "sp_peak_time"  : float
@@ -378,23 +377,25 @@ class MainApp(tk.Tk):
             # "sa_hwp"        : float
             # "sa_tsi"        : float
 
-            # 例えば1つ目のファイルのセンサー2の sa_peak_amp は 
+            # 例えば1つ目のファイルのセンサー2の sa_peak_amp は
             # res_lst[2]["sa_peak_amp"]
-            # 2つ目のファイルのセンサー1の sa_peak_amp は 
+            # 2つ目のファイルのセンサー1の sa_peak_amp は
             # res_lst[4]["sa_peak_amp"]
 
-            # ファイルが2つ(左右の手のデータ)あれば, coh_resultsに coherence を list of list で格納 
+            # ファイルが2つ(左右の手のデータ)あれば, coh_resultsに coherence を list of list で格納
             # センサーの順に,  x, y, z, norm の順 つまり coh_results[i][j]は, i番目のセンサーの j個目(x, y, z, norm)のデータを表す
-            
+
             # 画像生成関数ここで呼ぶ
             self.makepic(dir_idx, filenames, data, res_lst, coh_results)
 
             # add to csv
+            csv_file = open(os.path.join(self.target_dir, "results.csv", ), "a+")
+            writer = csv.writer(csv_file, lineterminator="\n")
             for r in csv_row:
                 writer.writerow(r)
-        
+            csv_file.close()
+
         # end processing
-        csv_file.close()
         self.progress_bar_text.set("--/--")
 
         self.insert_directorynames("analysis finished")
@@ -461,13 +462,13 @@ class MainApp(tk.Tk):
                     plt.gcf().text(0.1,height,coh_results[i][2], backgroundcolor="#D3DEF1")
                     plt.gcf().text(0.001,height,"coherence_z:")
                     height -= 0.05
-                    plt.gcf().text(0.1,height,coh_results[i][3], backgroundcolor="#D3DEF1")                  
+                    plt.gcf().text(0.1,height,coh_results[i][3], backgroundcolor="#D3DEF1")
                     plt.gcf().text(0.001,height,"coherence_norm:")
-                
+
 
                 ax_preview.set_title('preview')
                 ax_preview.set_xlabel('sample')
-                
+
                 graphs = [ax_x, ax_y, ax_z]
                 titles = ["x","y","z"]
 
@@ -491,7 +492,7 @@ class MainApp(tk.Tk):
                 ax_norm.set_ylabel("Frequency [Hz]")
                 cbar = plt.colorbar(im,ax=ax_norm)
                 cbar.set_label("Amplitude")
-                
+
                 fig.savefig(os.path.join(self.dir_list[dir_idx], f"{filenames[file_idx]}_sensor{i}_spectrogram.png"))
 
                 ax_norm.clear()
@@ -518,11 +519,11 @@ class MainApp(tk.Tk):
                 ax_norm.set_ylabel("Amplitude")
                 if (res_lst[lst_idx]["sa_l"] is not None and res_lst[lst_idx]["sa_u"] is not None):
                     ax_norm.fill_between(res_lst[lst_idx]["sa_f"][res_lst[lst_idx]["sa_l"]:res_lst[lst_idx]["sa_u"]], res_lst[lst_idx]["sa_graphs"][3, res_lst[lst_idx]["sa_l"]:res_lst[lst_idx]["sa_u"]], color="r", alpha=0.5)
-                
+
                 fig.savefig(os.path.join(self.dir_list[dir_idx], f"{filenames[file_idx]}_sensor{i}_spectral_amplitude.png"))
 
                 plt.close('all')
-        
+
     def clear_directorynames(self):
         self.infolist_box.delete(1.0, "end")
     def insert_directorynames(self, text:str=""):
@@ -545,7 +546,7 @@ class MainApp(tk.Tk):
                 self.infolist_box.insert("end", dir)
                 self.infolist_box.insert("end","\n")
 
-      
+
 
 
     def create_window(self):
@@ -554,7 +555,7 @@ class MainApp(tk.Tk):
         self.progress_frame = ttk.Frame(self.buttonframe)
         self.setting_frame = ttk.Frame(self)
 
-        self.scan_button = ttk.Button(self.buttonframe,text="scan",command=lambda: self.scan()) 
+        self.scan_button = ttk.Button(self.buttonframe,text="scan",command=lambda: self.scan())
         self.run_button = ttk.Button(self.buttonframe,text="run",command=lambda: self.run())
         self.infolist_box = tk.Text(self.filelistframe)
         self.progress_bar_text = tk.StringVar(self.buttonframe)
@@ -581,9 +582,9 @@ class MainApp(tk.Tk):
         self.buttonframe.grid(row=0,column=0)
         self.filelistframe.grid(row=0,column=1)
         self.scan_button.grid(row=0,column=0)
-        self.run_button.grid(row=1,column=0) 
-        self.infolist_box.grid(row=1,column=0) 
-        self.directoryname.grid(row=0,column=0) 
+        self.run_button.grid(row=1,column=0)
+        self.infolist_box.grid(row=1,column=0)
+        self.directoryname.grid(row=0,column=0)
         self.progress_frame.grid(row=2,column=0)
         self.progress_bar.grid(row=2,column=1)
         self.per.grid(row=2,column=0)
@@ -592,14 +593,14 @@ class MainApp(tk.Tk):
     def onchange_settings(self, event):
         self.segment_duration_sec = int(self.seg_txt.get())
         self.sampling_rate = int(self.samp_txt.get())
-    
+
     def can_enter_as_number(self, diff):
         if (diff == "-" or diff.encode('utf-8').isdigit() or str((int(diff)*-1)).encode('utf-8').isdigit()):
             # 妥当（半角数字である）の場合はTrueを返却
             return True
         # 妥当でない（半角数字でない）場合はFalseを返却
         return False
-    
+
 
 
     def app_exit(self):
@@ -607,7 +608,7 @@ class MainApp(tk.Tk):
         #self.destroy()
         exit()
 
-    
+
     def spectrogram_analize(self, data_i, fs, nperseg, start=0, end=-1):
         """
         Params
@@ -640,7 +641,7 @@ class MainApp(tk.Tk):
 
         specs = []
         x_length = len(data[0])
-        nTimesSpectrogram = 500; 
+        nTimesSpectrogram = 500;
         L = np.min((x_length, nperseg))
         noverlap = np.ceil(L - (x_length - L) / (nTimesSpectrogram - 1))
         noverlap = int(np.max((1,noverlap)))
@@ -648,19 +649,19 @@ class MainApp(tk.Tk):
         for i in range(3):
             # start = time.time()
 
-            # scipy 
+            # scipy
             f, t, spec = spectrogram(detrend(data[i]), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=noverlap, nfft=2**12, mode="magnitude", )
-            
-            
+
+
             # plt
-            # spec, f, t, _ = pltspectrogram(detrend(data[i]), Fs=fs, pad_to=int(nperseg), noverlap=noverlap, NFFT=2**12, mode="default", scale="linear") 
+            # spec, f, t, _ = pltspectrogram(detrend(data[i]), Fs=fs, pad_to=int(nperseg), noverlap=noverlap, NFFT=2**12, mode="default", scale="linear")
             # spec = np.sqrt(np.array(spec))
-            
+
             # self-created
             # spec, f, t = np.abs(self.stft(detrend(data[i]), fs, int(nperseg), self.segment_duration_sec))
             # elapsed_time = time.time() - start
             # print ("elapsed_time:\n{0}".format(elapsed_time))
-            
+
             specs.append(np.abs(spec))
         # convert to 3-dimensional ndarray
         specs = np.array(specs) #specs.shape: (3, 640, 527)
@@ -676,7 +677,7 @@ class MainApp(tk.Tk):
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
 
         graphs = [None, None, None, None]
-        
+
         titles = ["x","y","z"]
         for i in range(3):
             graphs[i], ax = plt.subplots(figsize=self.figsize_small, dpi=100)
@@ -737,7 +738,7 @@ class MainApp(tk.Tk):
             analysis end frame
             -1 means end of input data
         """
-        
+
         if (not len(data_i[0]) == len(data_i[1]) == len(data_i[2])):
             print("invalid input data")
             return None, None, None
@@ -758,7 +759,7 @@ class MainApp(tk.Tk):
             f, t, spec = spectrogram(detrend(data[i]), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=int(nperseg * 0.75), nfft=2**12, mode="complex", ) # scipy
             # spec, f, t, _ = pltspectrogram(detrend(data[i]), Fs=fs, pad_to=int(nperseg), noverlap=int(nperseg * 0.75), NFFT=2**12, mode="magnitude", scale="linear") #plt
             specs.append(np.sum(np.power(np.abs(spec), 1), axis=1) / (len(t)))
-            
+
         # convert to 3-dimensional ndarray
         specs = np.array(specs) #specs.shape: (3, 640)
 
@@ -770,7 +771,7 @@ class MainApp(tk.Tk):
         #specs /= np.sum(np.power(signal.tukey(int(nperseg)), 2)) / np.power(np.sum(signal.tukey(int(nperseg))), 2)
         vmin = np.min(specs)
         vmax = np.max(specs)
-        
+
         # add norm
         specs = np.append(specs, [np.linalg.norm(specs, axis=0)], axis=0)
 
@@ -809,11 +810,11 @@ class MainApp(tk.Tk):
         #plt.show()
         #### plt.savefig(data_dir + "/" + remove_ext(filename) + "norm" + sensor + "am.png")
         recording = len(data[0]) / fs
-        
+
         peak_amp = np.max(specs[3])
         peak_idx = np.where(specs[3] == peak_amp)
         peak_freq = f[peak_idx[0][0]]
-        tsi = self.tremor_stability_index(data[0], fs)
+        tsi = self.tremor_stability_index(data, fs)
 
 
 
@@ -831,7 +832,7 @@ class MainApp(tk.Tk):
     def full_width_half_maximum(self, x, y):
         """
         calcurate Full-width Half Maximum and Half-witdh power
-        
+
         Params
         x: array-like
         y: array-like
@@ -866,9 +867,9 @@ class MainApp(tk.Tk):
             lower_v = x[lower] + d * (peak_val_half - y_ndarray[lower]) / (y_ndarray[lower + 1] - y_ndarray[lower]) # linear interpolation
         else:
             lower_v = x[lower]
-    
+
         while (upper < length - 1 and y_ndarray[upper] > peak_val_half):
-            upper += 1    
+            upper += 1
         if (y_ndarray[upper] != peak_val_half and upper != length - 1):
             upper_v = x[upper] - d * (peak_val_half - y_ndarray[upper]) / (y_ndarray[upper -1] - y_ndarray[upper]) # linear interpolation
         else:
@@ -891,12 +892,12 @@ class MainApp(tk.Tk):
         else:
             # not estimated
             hwp = np.sum(y_ndarray[lower: upper]) * d
-        
-        
+
+
 
         return (is_estimated, lower, upper, lower_v, upper_v, hwp)
 
-    def tremor_stability_index(self, x, fs):
+    def tremor_stability_index(self, data, fs):
         """
         Tremor Stability Index
 
@@ -906,28 +907,47 @@ class MainApp(tk.Tk):
         fs: int/float
             sampling rate
         """
-        x_detrend = detrend(x)
+        # highpass filter
+        sos = butter(N=3, Wn=0.1, btype="highpass", fs=fs, output='sos')
+        data = sosfilt(sos, data, axis=0)
+
+        # principal component analysis
+        pca = PCA(n_components=1)
+        x = np.ravel(pca.fit_transform(detrend(data).T))
         length = len(x)
 
-        # plt.plot(x_detrend)
-        # plt.show()
+        nperseg = self.sampling_rate * self.segment_duration_sec
+        nTimesSpectrogram = 500;
+        L = np.min((length, nperseg))
+        noverlap = np.ceil(L - (length - L) / (nTimesSpectrogram - 1))
+        noverlap = int(np.max((1,noverlap)))
+        freq, _, spec = spectrogram(detrend(x), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=int(noverlap), nfft=2**12, mode="complex", )
+        max_freq = freq[np.unravel_index(np.argmax(spec, axis=None), spec.shape)[0]]
+        spec = np.abs(spec)
 
-        start = x_detrend[0]
+        if (max_freq < 2):
+            max_freq = 2.001 # to create bandpass filter, max_freq - 2 maust be larger than 0
+        elif (max_freq > 9):
+            max_freq = 9
+
+        sos = butter(N=3, Wn=(max_freq - 2, max_freq + 2), btype="bandpass", fs=fs, output='sos')
+        x= sosfilt(sos, x, axis=0)
+
         idx = 1
-        # array of zero-crossing points index
         zero_crossing = np.empty(0)
         while (idx < length):
-            while (idx < length and start * x_detrend[idx] > 0):
-                idx += 1
-            while (idx < length and start * x_detrend[idx] < 0):
-                idx += 1
-            zero_crossing = np.append(zero_crossing, idx)
-        interval = np.diff(zero_crossing)
-        tremor_freq = fs / interval # convert to frequency
-        delta_freq = np.diff(tremor_freq)
+            if (x[idx - 1] < 0 and x[idx] >= 0):
+                zero_crossing = np.append(zero_crossing, idx)
+            idx += 1
 
-        # 四分位範囲
-        q75, q25 = np.percentile(delta_freq, [75 ,25])
+        f = fs / np.diff(np.array(zero_crossing))
+        delta_f = np.diff(f)
+        if (len(delta_f) == 0):
+            q75, q25 = 0, 0
+        else:
+            q75, q25 = np.percentile(delta_f, [75, 25], interpolation="nearest")
+
+        # tsi
         return q75 - q25
 
     def ft_coherence(self, data1, data2, fs, start=0, end=-1):
@@ -946,8 +966,8 @@ class MainApp(tk.Tk):
         x1 = data1[start: end + 1]
         x2 = data2[start: end + 1]
 
-        nfft = 2 ** 10
-        noverlap = 2 ** 9
+        nfft = 2 ** 8
+        noverlap = 2 ** 7
         Cyx, f = cohere(x2, x1, NFFT=nfft, Fs=fs,
                     window=window_hanning, noverlap=noverlap)
         FREQ_LOW = 2
