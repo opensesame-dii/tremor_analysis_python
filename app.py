@@ -18,6 +18,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 # from PIL import Image, ImageTk
 import numpy as np
 from scipy.signal import hamming, detrend, morlet2, cwt, spectrogram, get_window, butter, sosfilt
+from matplotlib import use
+use('TkAgg')
 from matplotlib.mlab import cohere, window_hanning
 from matplotlib.pyplot import specgram as pltspectrogram
 from matplotlib.figure import Figure
@@ -27,8 +29,6 @@ from matplotlib import backend_tools as cbook
 import pandas as pd
 from sklearn.decomposition import PCA
 
-from matplotlib import use
-use('TkAgg')
 plt.rcParams['figure.subplot.bottom'] = 0.18
 # number of sensor
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"

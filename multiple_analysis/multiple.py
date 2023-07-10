@@ -24,6 +24,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 # from PIL import Image, ImageTk
 import numpy as np
 from scipy.signal import hamming, detrend, morlet2, cwt, spectrogram, get_window, butter, sosfilt
+from matplotlib import use
+use('TkAgg')
 from matplotlib.mlab import cohere, window_hanning
 from matplotlib.pyplot import specgram as pltspectrogram
 from matplotlib.figure import Figure
@@ -33,10 +35,6 @@ from matplotlib import backend_tools as cbook
 import pandas as pd
 from sklearn.decomposition import PCA
 
-from csv import writer
-
-from matplotlib import use
-use('TkAgg')
 plt.rcParams['figure.subplot.bottom'] = 0.18
 # number of sensor
 # e.g. 3 for "accelerometer, magnetmeter and gyroscope", 2 for "left arm and right arm"
@@ -273,6 +271,7 @@ class MainApp(tk.Tk):
             "FT coherence integral(z)",
             "FT coherence integral(norm)"
             ])
+        csv_file.close()
 
         for dir_idx in range(len(self.dir_list)):
             print(self.dir_list[dir_idx])
@@ -390,11 +389,13 @@ class MainApp(tk.Tk):
             self.makepic(dir_idx, filenames, data, res_lst, coh_results)
 
             # add to csv
+            csv_file = open(os.path.join(self.target_dir, "results.csv", ), "a+")
+            writer = csv.writer(csv_file, lineterminator="\n")
             for r in csv_row:
                 writer.writerow(r)
+            csv_file.close()
 
         # end processing
-        csv_file.close()
         self.progress_bar_text.set("--/--")
 
         self.insert_directorynames("analysis finished")
