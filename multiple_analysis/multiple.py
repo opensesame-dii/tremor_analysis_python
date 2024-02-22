@@ -200,28 +200,32 @@ class MainApp(tk.Tk):
         result = True
         for d in os.listdir(self.target_dir):
             path_to_dir = os.path.join(self.target_dir, d)
-            # check directory or not
-            if (not os.path.isdir(path_to_dir)):
+            if not os.path.isdir(path_to_dir):
                 continue
-            self.dir_list.append(path_to_dir)
+            for d in os.listdir(path_to_dir):
+                path_to_patient_dir = os.path.join(path_to_dir, d)
+                # check directory or not
+                if (not os.path.isdir(path_to_patient_dir)):
+                    continue
+                self.dir_list.append(path_to_patient_dir)
 
-            csv_xls = self.extract_csv_xls(os.listdir(self.dir_list[-1]))
+                csv_xls = self.extract_csv_xls(os.listdir(self.dir_list[-1]))
 
-            if (len(csv_xls) != 2 and len(csv_xls) != 1):
-                err_msg = f"{len(csv_xls)} csv or excel files in {self.dir_list[-1]}, but must be 1 or 2"
-                print(f"ERROR: {err_msg}")
-                # tk.messagebox.showerror("ERROR", err_msg)
-                error_list.append(err_msg)
-                result = False
-            """
-            for filename in os.listdir(self.dir_list[-1]):
-                if (not os.path.splitext(filename)[1] in self.file_extensions):
-                    err_msg = f"invalid file extension {filename} in {d}"
+                if (len(csv_xls) != 2 and len(csv_xls) != 1):
+                    err_msg = f"{len(csv_xls)} csv or excel files in {self.dir_list[-1]}, but must be 1 or 2"
                     print(f"ERROR: {err_msg}")
                     # tk.messagebox.showerror("ERROR", err_msg)
                     error_list.append(err_msg)
                     result = False
-            """
+                """
+                for filename in os.listdir(self.dir_list[-1]):
+                    if (not os.path.splitext(filename)[1] in self.file_extensions):
+                        err_msg = f"invalid file extension {filename} in {d}"
+                        print(f"ERROR: {err_msg}")
+                        # tk.messagebox.showerror("ERROR", err_msg)
+                        error_list.append(err_msg)
+                        result = False
+                """
         if (not result):
             self.update_directoryname("error", error_list)
             tk.messagebox.showerror("ERROR", "please check error message")
