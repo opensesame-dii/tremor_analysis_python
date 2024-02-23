@@ -282,6 +282,8 @@ class MainApp(tk.Tk):
             self.progress_bar_text.set(f"{dir_idx}/{len(self.dir_list)}")
             # filenames in the directory
             filenames = self.extract_csv_xls(os.listdir(os.path.join(self.target_dir, self.dir_list[dir_idx])))
+            patient_name = os.path.basename(os.path.dirname(self.dir_list[dir_idx]))
+            sample_num = os.path.basename(self.dir_list[dir_idx])
 
             res_lst = []
             data = []
@@ -335,8 +337,9 @@ class MainApp(tk.Tk):
                     res_lst[-1]["sa_l"] = sa_l
                     res_lst[-1]["sa_u"] = sa_u
 
+                    print ("出力：",os.path.join(patient_name,sample_num, filenames[file_idx]))
                     csv_row.append([
-                        filenames[file_idx],
+                        os.path.join(patient_name, sample_num, filenames[file_idx]),
                         sensor_idx+1,
                         sp_peak_amp, sp_peak_freq, sp_peak_time,
                         sa_peak_amp, sa_peak_freq, sa_fwhm, sa_hwp, sa_tsi,
