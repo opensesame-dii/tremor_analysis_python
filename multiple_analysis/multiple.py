@@ -932,7 +932,7 @@ class MainApp(tk.Tk):
         freqs = np.fft.fftfreq(len(x), d=1/fs)
         max_freq = freqs[np.argmax(amplitude_spectrum[:len(x) // 2])]
 
-        if (max_freq < 2):
+        if (max_freq <= 2):
             max_freq = 2.001 # to create bandpass filter, max_freq - 2 maust be larger than 0
         elif (max_freq > 9):
             max_freq = 9
