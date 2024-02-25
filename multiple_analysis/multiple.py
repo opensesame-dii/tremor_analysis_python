@@ -920,7 +920,7 @@ class MainApp(tk.Tk):
 
         # principal component analysis
         pca = PCA(n_components=1)
-        x = np.ravel(pca.fit_transform(detrend(data).T))
+        x = np.ravel(pca.fit_transform(np.array(data).T))
         length = len(x)
 
         nperseg = self.sampling_rate * self.segment_duration_sec
@@ -928,9 +928,9 @@ class MainApp(tk.Tk):
         L = np.min((length, nperseg))
         noverlap = np.ceil(L - (length - L) / (nTimesSpectrogram - 1))
         noverlap = int(np.max((1,noverlap)))
-        freq, _, spec = spectrogram(detrend(x), fs, window=get_window("hamming", int(nperseg)), nperseg=int(nperseg), noverlap=int(noverlap), nfft=2**12, mode="complex", )
-        max_freq = freq[np.unravel_index(np.argmax(spec, axis=None), spec.shape)[0]]
-        spec = np.abs(spec)
+        amplitude_spectrum = np.abs(np.fft.fft(x))
+        freqs = np.fft.fftfreq(len(x), d=1/fs)
+        max_freq = freqs[np.argmax(amplitude_spectrum[:len(x) // 2])]
 
         if (max_freq < 2):
             max_freq = 2.001 # to create bandpass filter, max_freq - 2 maust be larger than 0
